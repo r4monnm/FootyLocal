@@ -4,6 +4,7 @@ import { Badge, Button } from "@footylocal/ui";
 import { createClient } from "@/lib/supabase/server";
 import { GameLocationMap } from "./GameLocationMap";
 import { joinAction, leaveAction } from "./actions";
+import { blockAction } from "./trust-actions";
 
 type RosterEntry = { player_id: string; name: string | null; role: string };
 type Detail = {
@@ -84,6 +85,18 @@ export default async function GamePage({
         {game.is_women_only && <span>women-only</span>}
       </div>
 
+      {!isHost && (
+        <div className="flex gap-3 text-xs">
+          <a className="uppercase underline text-neutral-500"
+             href={`/report?reported=${game.host_id}&game=${game.id}`}>Report host</a>
+          <form>
+            <input type="hidden" name="userId" value={game.host_id} />
+            <input type="hidden" name="gameId" value={game.id} />
+            <button formAction={blockAction} className="uppercase underline text-neutral-500">Block host</button>
+          </form>
+        </div>
+      )}
+
       {game.description && <p className="text-neutral-700">{game.description}</p>}
 
       {game.viewer_joined ? (
@@ -106,8 +119,18 @@ export default async function GamePage({
             <h3 className="text-xs uppercase text-neutral-500">Roster</h3>
             <ul className="mt-2 flex flex-col gap-1">
               {(game.roster ?? []).map((r) => (
-                <li key={r.player_id} className="text-sm">
-                  {r.name ?? "Player"} {r.role === "host" && <span className="text-neutral-400">· host</span>}
+                <li key={r.player_id} className="flex items-center justify-between text-sm">
+                  <span>{r.name ?? "Player"} {r.role === "host" && <span className="text-neutral-400">· host</span>}</span>
+                  {user && r.player_id !== user.id && r.role !== "host" && (
+                    <span className="flex gap-2 text-xs text-neutral-400">
+                      <a className="uppercase underline" href={`/report?reported=${r.player_id}&game=${game.id}`}>Report</a>
+                      <form>
+                        <input type="hidden" name="userId" value={r.player_id} />
+                        <input type="hidden" name="gameId" value={game.id} />
+                        <button formAction={blockAction} className="uppercase underline">Block</button>
+                      </form>
+                    </span>
+                  )}
                 </li>
               ))}
             </ul>
