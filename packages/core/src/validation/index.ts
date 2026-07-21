@@ -1,5 +1,7 @@
 import { z } from "zod";
 import { SKILL_BANDS } from "../skill/index.js";
+import { GAME_FORMATS } from "../game/index.js";
+import { GAME_BANDS } from "../skill/index.js";
 
 /** Signup requires an explicit 18+ attestation (literal true). */
 export const signUpSchema = z.object({
@@ -50,3 +52,33 @@ export function friendlyAuthError(raw: string): string {
   }
   return "Something went wrong. Please try again.";
 }
+
+/** Validates a hosted-game submission. Dates are coerced from datetime-local /
+ * ISO strings. Fuzzing/geography are applied server-side, not here. */
+export const gameCreateSchema = z
+  .object({
+    title: z.string().min(2).max(80),
+    description: z.string().max(500).optional(),
+    venueId: z.string().uuid(),
+    startsAt: z.coerce.date(),
+    endsAt: z.coerce.date(),
+    skillBand: z.enum(GAME_BANDS),
+    format: z.enum(GAME_FORMATS),
+    maxPlayers: z.number().int().min(2).max(64),
+    minPlayersToConfirm: z.number().int().min(2).max(64),
+    isWomenOnly: z.boolean(),
+    priceCents: z.number().int().min(0).default(0),
+  })
+  .refine((d) => d.endsAt > d.startsAt, {
+    message: "End time must be after the start time.",
+    path: ["endsAt"],
+  })
+  .refine((d) => d.startsAt.getTime() > Date.now(), {
+    message: "Start time must be in the future.",
+    path: ["startsAt"],
+  })
+  .refine((d) => d.minPlayersToConfirm <= d.maxPlayers, {
+    message: "Min players to confirm can't exceed max players.",
+    path: ["minPlayersToConfirm"],
+  });
+export type GameCreateInput = z.infer<typeof gameCreateSchema>;

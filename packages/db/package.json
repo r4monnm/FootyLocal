@@ -5,16 +5,19 @@
   "type": "module",
   "exports": {
     ".": "./src/client.ts",
-    "./schema": "./src/schema/index.ts"
+    "./schema": "./src/schema/index.ts",
+    "./games": "./src/games.ts"
   },
   "scripts": {
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate",
     "sql": "tsx scripts/apply-sql.ts",
     "seed": "tsx src/seed/venues.ts",
+    "seed:games": "tsx src/seed/games.ts",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
+    "@footylocal/core": "workspace:*",
     "@supabase/supabase-js": "^2.45.0",
     "drizzle-orm": "^0.36.0",
     "postgres": "^3.4.0"

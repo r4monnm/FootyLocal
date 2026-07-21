@@ -5,6 +5,7 @@ import {
   otpSchema,
   friendlyAuthError,
 } from "./index.js";
+import { gameCreateSchema } from "./index.js";
 
 describe("signUpSchema", () => {
   it("accepts a valid 18+ signup", () => {
@@ -76,5 +77,39 @@ describe("friendlyAuthError", () => {
     expect(friendlyAuthError("pq: relation does not exist")).toBe(
       "Something went wrong. Please try again.",
     );
+  });
+});
+
+describe("gameCreateSchema", () => {
+  const base = {
+    title: "Sunday 5s",
+    venueId: "11111111-1111-1111-1111-111111111111",
+    startsAt: "2999-06-01T10:00:00.000Z",
+    endsAt: "2999-06-01T11:00:00.000Z",
+    skillBand: "intermediate",
+    format: "five_a_side",
+    maxPlayers: 10,
+    minPlayersToConfirm: 6,
+    isWomenOnly: false,
+    priceCents: 0,
+  };
+  it("accepts a valid future game", () => {
+    expect(gameCreateSchema.safeParse(base).success).toBe(true);
+  });
+  it("rejects end before start", () => {
+    const r = gameCreateSchema.safeParse({ ...base, endsAt: "2999-06-01T09:00:00.000Z" });
+    expect(r.success).toBe(false);
+  });
+  it("rejects a start in the past", () => {
+    const r = gameCreateSchema.safeParse({ ...base, startsAt: "2000-01-01T10:00:00.000Z", endsAt: "2000-01-01T11:00:00.000Z" });
+    expect(r.success).toBe(false);
+  });
+  it("rejects minPlayersToConfirm above maxPlayers", () => {
+    const r = gameCreateSchema.safeParse({ ...base, minPlayersToConfirm: 20 });
+    expect(r.success).toBe(false);
+  });
+  it("rejects an invalid venue id", () => {
+    const r = gameCreateSchema.safeParse({ ...base, venueId: "not-a-uuid" });
+    expect(r.success).toBe(false);
   });
 });

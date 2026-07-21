@@ -35,3 +35,43 @@ Non-blocking items surfaced during Phase 0 reviews, to address in later phases.
   against "active tab highlighted in the accent color."
 - `apps/web` uses Tailwind default grays (`neutral-300/400/600`) in a few places
   instead of the `ui` token gray. Consolidate onto tokens.
+
+---
+
+# Phase 1a — Deferred Follow-ups
+
+Non-blocking items from Phase 1a reviews (final review verdict: ready to merge, no
+Critical/Important). Prioritize the service-key guard.
+
+## Security / robustness
+- **`server-only` guard on `packages/db/src/games.ts` (do soon).** It imports the
+  service-role client; today it's reached only via the `"use server"` host action
+  (build-verified no client leak), but only a comment protects it. CAVEAT: a plain
+  `import "server-only"` breaks `seed:games` (same module runs under `tsx`/Node,
+  where `server-only` throws). Options: split the create logic so the seed path
+  doesn't import the guarded module, or gate the guard behind a bundler-only entry.
+- **Generate Supabase `Database` types.** The client has no `Database` generic, so
+  `.rpc()/.from()` results are implicitly `any` and the `data as NearbyGame[]` casts
+  are unchecked. Do before Phase 1b so RPC/column drift is type-caught.
+- **Migration idempotency guards** match constraints on `conname` alone (not
+  `conname + conrelid`) — theoretical collision only.
+
+## Correctness / polish
+- **`games_near` rebuilt in both 0003 and 0007** on every replay (0007 is the source
+  of truth). Wasteful, converges correctly. Add a dev-docs note.
+- **Host error mapping:** `createGame` DB errors (e.g. "venue not verified") are run
+  through `friendlyAuthError` (auth-oriented) → collapse to generic. Add a
+  game-specific error mapper for actionable host feedback.
+- **DiscoverMap:** map doesn't recenter to the geolocated position when there are 0
+  nearby games (list is correct); uses the deprecated `google.maps.Marker` (consider
+  `AdvancedMarkerElement`); marker re-plot effect returns no cleanup (harmless).
+- **Host form field coercion:** `String(formData.get())` yields `"null"` for missing
+  fields (mitigated by `required` + Zod + the DB verified-venue re-check).
+- **`NearbyGame.joined_count`** typed `number` but the RPC column is `bigint`
+  (consumers wrap in `Number()`; type is really `number | string`).
+
+## Deferred to 1b / 1c (by design)
+- Game detail page, join, precise-location reveal + Directions (1b). The `precise_*`
+  columns from `games_near` are intentionally unused in 1a (null for non-roster) and
+  go live in 1b.
+- Ratings, report, block (1c).
