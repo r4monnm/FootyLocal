@@ -22,4 +22,11 @@ as $$
   update venues set location = st_makepoint(lng, lat)::geography where id = venue_id;
 $$;
 
-alter table venues add constraint venues_name_unique unique (name);
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'venues_name_unique'
+  ) then
+    alter table venues add constraint venues_name_unique unique (name);
+  end if;
+end $$;

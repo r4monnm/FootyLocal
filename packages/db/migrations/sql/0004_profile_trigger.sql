@@ -1,9 +1,16 @@
 -- Create a profiles row automatically when an auth user is created, carrying
 -- the 18+ attestation captured at signup (passed in user metadata).
-alter table profiles
-  add constraint profiles_id_fkey
-  foreign key (id) references auth.users(id) on delete cascade
-  not valid;
+do $$
+begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'profiles_id_fkey'
+  ) then
+    alter table profiles
+      add constraint profiles_id_fkey
+      foreign key (id) references auth.users(id) on delete cascade
+      not valid;
+  end if;
+end $$;
 
 create or replace function handle_new_user()
 returns trigger
