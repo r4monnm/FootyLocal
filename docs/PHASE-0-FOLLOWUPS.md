@@ -10,9 +10,10 @@ Non-blocking items surfaced during Phase 0 reviews, to address in later phases.
 - **Wire `blocks` into `games_near` and roster reads.** Spec §4 requires blocked
   users never see each other's games/chats. The `blocks` table exists but is not
   consulted yet. Add to the RPC + read policies in Phase 1.
-- **Harden auth error messaging.** `apps/web/app/(auth)/actions.ts` echoes raw
-  Supabase `error.message` via the `?error=` query param — an account-enumeration
-  surface. Map to generic messages before/at launch.
+- ~~**Harden auth error messaging.**~~ DONE (2026-07-21): `friendlyAuthError()`
+  in `packages/core` maps raw Supabase auth errors to safe copy; the auth
+  actions no longer echo raw `error.message`. The 18+ gate now shows a clear
+  message instead of "Invalid literal value, expected true".
 - **Verified-venue check on `tournaments.venue_id`.** `games` enforces it via RLS
   `with check`; tournaments (Phase-4 stub) do not yet.
 
