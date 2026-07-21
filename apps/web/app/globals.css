@@ -1,8 +1,8 @@
+/* Load display + body faces first so the @import is not dropped after Tailwind
+   expands into rules (all @import statements must precede other rules). */
+@import url("https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap");
 @import "tailwindcss";
 @import "@footylocal/ui/theme.css";
-
-/* Load display + body faces. Anton (display) + Inter (body) via Google Fonts. */
-@import url("https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap");
 
 body {
   background: var(--color-surface);
