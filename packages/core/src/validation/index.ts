@@ -3,9 +3,13 @@ import { SKILL_BANDS } from "../skill/index.js";
 
 /** Signup requires an explicit 18+ attestation (literal true). */
 export const signUpSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(10, "Use at least 10 characters"),
-  is18Plus: z.literal(true),
+  email: z.string().email("Enter a valid email address."),
+  password: z.string().min(10, "Use a password of at least 10 characters."),
+  is18Plus: z.literal(true, {
+    errorMap: () => ({
+      message: "You must confirm you're 18 or older to create an account.",
+    }),
+  }),
 });
 export type SignUpInput = z.infer<typeof signUpSchema>;
 
@@ -26,3 +30,23 @@ export const profileUpdateSchema = z.object({
   selfReportedSkill: z.enum(SKILL_BANDS),
 });
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>;
+
+/**
+ * Map a raw Supabase/GoTrue auth error message to safe, user-facing copy.
+ * Prevents leaking internal details (and account-enumeration signals) while
+ * still giving the user something actionable. Unknown messages collapse to a
+ * generic fallback rather than being echoed verbatim.
+ */
+export function friendlyAuthError(raw: string): string {
+  const m = raw.toLowerCase();
+  if (m.includes("invalid login credentials")) {
+    return "Incorrect email or password.";
+  }
+  if (m.includes("already registered") || m.includes("already been registered")) {
+    return "That email is already registered — try signing in instead.";
+  }
+  if (m.includes("rate limit")) {
+    return "Too many attempts. Please wait a few minutes and try again.";
+  }
+  return "Something went wrong. Please try again.";
+}

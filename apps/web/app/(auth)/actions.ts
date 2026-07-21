@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { signUpSchema, otpSchema } from "@footylocal/core";
+import { signUpSchema, otpSchema, friendlyAuthError } from "@footylocal/core";
 import { createClient } from "@/lib/supabase/server";
 
 /** Email + password sign-in. */
@@ -11,7 +11,9 @@ export async function signInAction(formData: FormData): Promise<void> {
     email: String(formData.get("email")),
     password: String(formData.get("password")),
   });
-  if (error) redirect(`/sign-in?error=${encodeURIComponent(error.message)}`);
+  if (error) {
+    redirect(`/sign-in?error=${encodeURIComponent(friendlyAuthError(error.message))}`);
+  }
   redirect("/discover");
 }
 
@@ -31,7 +33,9 @@ export async function signUpAction(formData: FormData): Promise<void> {
     password: parsed.data.password,
     options: { data: { is_18_plus: true } },
   });
-  if (error) redirect(`/sign-in?error=${encodeURIComponent(error.message)}`);
+  if (error) {
+    redirect(`/sign-in?error=${encodeURIComponent(friendlyAuthError(error.message))}`);
+  }
   // Phone verification is required before join/host. Send them to the gate.
   redirect("/verify-phone");
 }
@@ -56,6 +60,8 @@ export async function verifyPhoneAction(formData: FormData): Promise<void> {
     .from("profiles")
     .update({ phone_verified: true, verification_level: "phone" })
     .eq("id", user.id);
-  if (error) redirect(`/verify-phone?error=${encodeURIComponent(error.message)}`);
+  if (error) {
+    redirect(`/verify-phone?error=${encodeURIComponent(friendlyAuthError(error.message))}`);
+  }
   redirect("/discover");
 }
