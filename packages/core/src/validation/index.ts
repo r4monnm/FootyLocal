@@ -82,3 +82,15 @@ export const gameCreateSchema = z
     path: ["minPlayersToConfirm"],
   });
 export type GameCreateInput = z.infer<typeof gameCreateSchema>;
+
+/** Map a raw join/leave RPC error to safe, user-facing copy. */
+export function friendlyGameError(raw: string): string {
+  const m = raw.toLowerCase();
+  if (m.includes("verify")) return "Verify your phone before joining a game.";
+  if (m.includes("full")) return "This game is full — no spots left.";
+  if (m.includes("already")) return "You're already on this game's roster.";
+  if (m.includes("not open")) return "This game isn't open to join right now.";
+  if (m.includes("host")) return "The host can't leave their own game.";
+  if (m.includes("not on this roster")) return "You're not on this game's roster.";
+  return "Couldn't complete that. Please try again.";
+}
