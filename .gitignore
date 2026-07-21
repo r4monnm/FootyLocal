@@ -1,0 +1,19 @@
+# dependencies
+node_modules/
+.pnpm-store/
+
+# env / secrets — never commit real keys
+.env
+.env.*
+!.env.example
+
+# build output
+.next/
+dist/
+out/
+.turbo/
+
+# misc
+.DS_Store
+*.log
+coverage/
