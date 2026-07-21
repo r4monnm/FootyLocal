@@ -70,8 +70,34 @@ Critical/Important). Prioritize the service-key guard.
 - **`NearbyGame.joined_count`** typed `number` but the RPC column is `bigint`
   (consumers wrap in `Number()`; type is really `number | string`).
 
-## Deferred to 1b / 1c (by design)
-- Game detail page, join, precise-location reveal + Directions (1b). The `precise_*`
-  columns from `games_near` are intentionally unused in 1a (null for non-roster) and
-  go live in 1b.
+## Deferred to 1c / Phase 2 (by design)
 - Ratings, report, block (1c).
+- Waitlist-when-full, refund deadlines, no-show tracking, payments (Phase 2).
+
+---
+
+# Phase 1b — Deferred Follow-ups
+
+Final review verdict: ready to merge with the roster-read fix (done, commit 7d5f443).
+Remaining items are non-blocking.
+
+## Security / robustness
+- **`game_detail` has no status filter** — being SECURITY DEFINER it bypasses
+  `games_read_open` and returns any game's public metadata (title/venue/host/public
+  area) by id regardless of status. Low impact (no draft-creation path;
+  public_location is fuzzed; page shows "not open"). Add a
+  `status in ('open','confirmed','completed')` guard for defense-in-depth.
+- **`join_game` already-joined guard checks only `status='joined'`** — a
+  `waitlisted/no_show/attended` row could fall through the `on conflict` to
+  `joined`. No such write paths exist until Phase 2 waitlist/attendance; revisit then.
+- **`game_detail` inner-joins `profiles`/`venues`** — a game silently vanishes if
+  the host profile or venue row were missing (both FK-backed + always present today).
+  A `left join` is more robust.
+
+## Polish
+- **`Detail.joined_count` typed `number`** but Postgres `bigint` arrives as a JSON
+  string (consumers coerce with `Number()`; annotation should be `number | string`).
+- **Reflected `?error=` param** rendered verbatim on `/game/[id]` (React-escaped, not
+  XSS); optionally validate against the known friendly-copy set.
+- Deprecated `google.maps.Marker` used in the reveal mini-map (matches DiscoverMap;
+  modernize to `AdvancedMarkerElement` together).

@@ -31,3 +31,9 @@ export function toGamesNearFilters(f: DiscoverFilters): Record<string, unknown> 
   if (f.womenOnly) out.women_only = true;
   return out;
 }
+
+/** Google Maps directions deep link to a destination (turn-by-turn from the
+ * viewer's current location). */
+export function googleDirectionsUrl(lat: number, lng: number): string {
+  return `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`;
+}

@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { GAME_FORMATS, toGamesNearFilters } from "./index.js";
+import { googleDirectionsUrl } from "./index.js";
 
 describe("GAME_FORMATS", () => {
   it("matches the DB game_format enum values", () => {
@@ -37,5 +38,13 @@ describe("toGamesNearFilters", () => {
   });
   it("omits womenOnly when false", () => {
     expect(toGamesNearFilters({ radiusMeters: 5000, womenOnly: false })).toEqual({});
+  });
+});
+
+describe("googleDirectionsUrl", () => {
+  it("builds a Google Maps directions deep link to the destination", () => {
+    expect(googleDirectionsUrl(33.749, -84.388)).toBe(
+      "https://www.google.com/maps/dir/?api=1&destination=33.749,-84.388",
+    );
   });
 });

@@ -6,6 +6,7 @@ import {
   friendlyAuthError,
 } from "./index.js";
 import { gameCreateSchema } from "./index.js";
+import { friendlyGameError } from "./index.js";
 
 describe("signUpSchema", () => {
   it("accepts a valid 18+ signup", () => {
@@ -111,5 +112,23 @@ describe("gameCreateSchema", () => {
   it("rejects an invalid venue id", () => {
     const r = gameCreateSchema.safeParse({ ...base, venueId: "not-a-uuid" });
     expect(r.success).toBe(false);
+  });
+});
+
+describe("friendlyGameError", () => {
+  it("maps phone-verify errors", () => {
+    expect(friendlyGameError("you must verify your phone to join")).toMatch(/verify your phone/i);
+  });
+  it("maps full games", () => {
+    expect(friendlyGameError("this game is full")).toMatch(/full/i);
+  });
+  it("maps already-joined", () => {
+    expect(friendlyGameError("you are already on this roster")).toMatch(/already/i);
+  });
+  it("maps host-cannot-leave", () => {
+    expect(friendlyGameError("the host cannot leave their own game")).toMatch(/host/i);
+  });
+  it("falls back generically for unknown errors", () => {
+    expect(friendlyGameError("pq: deadlock detected")).toBe("Couldn't complete that. Please try again.");
   });
 });

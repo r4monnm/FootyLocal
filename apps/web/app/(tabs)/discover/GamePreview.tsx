@@ -1,6 +1,7 @@
 "use client";
+import Link from "next/link";
 import { roundPublicDistance } from "@footylocal/core";
-import { Badge, Button } from "@footylocal/ui";
+import { Badge } from "@footylocal/ui";
 import type { NearbyGame } from "./types";
 
 export function GamePreview({
@@ -31,7 +32,12 @@ export function GamePreview({
         <p className="text-xs text-neutral-500">
           Approximate area shown. The exact pitch is revealed after you join.
         </p>
-        <Button variant="accent" disabled>Join — coming next</Button>
+        <Link
+          href={`/game/${game.id}`}
+          className="inline-flex items-center justify-center rounded-[var(--radius-pill)] bg-ink px-8 py-4 text-sm font-semibold uppercase tracking-wide text-accent"
+        >
+          View game
+        </Link>
         <button onClick={onClose} className="text-xs uppercase text-neutral-500">Close</button>
       </div>
     </div>
