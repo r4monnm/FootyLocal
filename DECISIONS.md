@@ -29,3 +29,10 @@ unverified venue.
 Tokens live in `packages/ui/src/tokens/index.ts` (source of truth for JS/native)
 and are mirrored into a `@theme` block in `packages/ui/src/theme.css` for
 Tailwind v4. Kept in sync manually; small surface, low churn.
+
+## 2026-07-21 — Client factory locations (reconciles spec §3.1 wording)
+The service-role client lives in `packages/db/src/client.ts`. The browser and
+server (cookie-bound, anon-key) clients live in `apps/web/lib/supabase/*` per the
+@supabase/ssr pattern — NOT in packages/db. This deliberately keeps the
+service-role client out of the web dependency graph. The spec's "three factories
+in packages/db/client.ts" wording predates this; this note is the source of truth.
