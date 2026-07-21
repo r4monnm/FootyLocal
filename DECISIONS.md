@@ -1,0 +1,38 @@
+# Architecture Decisions
+
+## 2026-07-21 — Drizzle owns schema, Supabase owns runtime
+Drizzle is the source of truth for non-geo columns and generates migrations.
+PostGIS columns, GiST indexes, RLS policies, and the `games_near` RPC are
+hand-written SQL applied after Drizzle migrations. Runtime access is via
+`supabase-js` so RLS is always enforced. Tradeoff: two migration sources must
+stay ordered; accepted as the only clean PostGIS + typed-schema combination.
+
+## 2026-07-21 — Deterministic write-time location fuzzing
+`public_location` is derived by grid-snapping the precise point and applying a
+per-game offset seeded from the game UUID. No fresh per-read randomness, so it
+cannot be averaged out. The public display circle is centered off the true
+point (Strava Privacy-Zone fix).
+
+## 2026-07-21 — games_near decides precise-vs-public per caller
+A SECURITY DEFINER RPC returns precise_location only to on-roster callers,
+public_location otherwise. Authorization lives in the DB, not the client.
+
+## 2026-07-21 — Column-level protection for games.precise_location
+RLS is row-level, so a SELECT policy on `games` cannot hide a single column.
+We REVOKE table SELECT from anon/authenticated and re-GRANT every column except
+`precise_location`; the games_near RPC (SECURITY DEFINER) is the only path that
+reveals precise coordinates, and only to on-roster callers. Games also carry a
+`with check` requiring `venues.is_verified`, so no game can reference an
+unverified venue.
+
+## 2026-07-21 — Tailwind v4 CSS-first tokens, mirrored in TS
+Tokens live in `packages/ui/src/tokens/index.ts` (source of truth for JS/native)
+and are mirrored into a `@theme` block in `packages/ui/src/theme.css` for
+Tailwind v4. Kept in sync manually; small surface, low churn.
+
+## 2026-07-21 — Client factory locations (reconciles spec §3.1 wording)
+The service-role client lives in `packages/db/src/client.ts`. The browser and
+server (cookie-bound, anon-key) clients live in `apps/web/lib/supabase/*` per the
+@supabase/ssr pattern — NOT in packages/db. This deliberately keeps the
+service-role client out of the web dependency graph. The spec's "three factories
+in packages/db/client.ts" wording predates this; this note is the source of truth.

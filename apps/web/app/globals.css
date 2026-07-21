@@ -1,0 +1,18 @@
+/* Load display + body faces first so the @import is not dropped after Tailwind
+   expands into rules (all @import statements must precede other rules). */
+@import url("https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@400;500;600;700&display=swap");
+@import "tailwindcss";
+@import "@footylocal/ui/theme.css";
+
+body {
+  background: var(--color-surface);
+  color: var(--color-ink);
+  font-family: var(--font-body);
+}
+
+.display {
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  line-height: 0.9;
+  letter-spacing: -0.01em;
+}
