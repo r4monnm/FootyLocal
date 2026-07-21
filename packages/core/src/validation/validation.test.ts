@@ -7,6 +7,7 @@ import {
 } from "./index.js";
 import { gameCreateSchema } from "./index.js";
 import { friendlyGameError } from "./index.js";
+import { ratingInputSchema, reportSchema, REPORT_REASONS } from "./index.js";
 
 describe("signUpSchema", () => {
   it("accepts a valid 18+ signup", () => {
@@ -130,5 +131,36 @@ describe("friendlyGameError", () => {
   });
   it("falls back generically for unknown errors", () => {
     expect(friendlyGameError("pq: deadlock detected")).toBe("Couldn't complete that. Please try again.");
+  });
+});
+
+describe("ratingInputSchema", () => {
+  const base = { skill: 4, sportsmanship: 5, showedUp: true, isHostRating: false };
+  it("accepts a valid rating", () => {
+    expect(ratingInputSchema.safeParse(base).success).toBe(true);
+  });
+  it("rejects skill out of 1..5", () => {
+    expect(ratingInputSchema.safeParse({ ...base, skill: 0 }).success).toBe(false);
+    expect(ratingInputSchema.safeParse({ ...base, skill: 6 }).success).toBe(false);
+  });
+  it("rejects non-integer scores", () => {
+    expect(ratingInputSchema.safeParse({ ...base, sportsmanship: 3.5 }).success).toBe(false);
+  });
+});
+
+describe("reportSchema", () => {
+  it("accepts a valid reason", () => {
+    expect(reportSchema.safeParse({ reason: "harassment", details: "x" }).success).toBe(true);
+  });
+  it("allows omitting details", () => {
+    expect(reportSchema.safeParse({ reason: "no_show" }).success).toBe(true);
+  });
+  it("rejects an unknown reason", () => {
+    expect(reportSchema.safeParse({ reason: "banana" }).success).toBe(false);
+  });
+  it("exposes the DB report_reason values", () => {
+    expect(REPORT_REASONS).toEqual([
+      "harassment", "no_show", "unsafe_behavior", "fake_profile", "other",
+    ]);
   });
 });

@@ -70,9 +70,28 @@ Critical/Important). Prioritize the service-key guard.
 - **`NearbyGame.joined_count`** typed `number` but the RPC column is `bigint`
   (consumers wrap in `Number()`; type is really `number | string`).
 
-## Deferred to 1c / Phase 2 (by design)
-- Ratings, report, block (1c).
+## Deferred to Phase 2 / 3 (by design)
 - Waitlist-when-full, refund deadlines, no-show tracking, payments (Phase 2).
+- Rich skill tiers from peer ratings + karma-driven join-gating; photo/ID verify;
+  Share My Game; check-in/SOS (Phase 3). Message/chat block-invisibility (Phase 4).
+
+---
+
+# Phase 1c — Deferred Follow-ups
+
+Final review verdict: ready to merge after the anonymity + skill-validation fixes
+(done, migration 0011, commit 85b8223). Remaining items are non-blocking.
+
+## Polish
+- **`blockAction` redirect:** after blocking the HOST it redirects to `/game/[id]`,
+  which is now hidden → "Game not found". Spec §6 wanted `/discover`. Redirect to
+  Discover when the block target is the host (or unconditionally).
+- **`submit_rating` `is_host_rating`** is caller-supplied, not derived from
+  `games.host_id`. Unused in 1c; when tiering consumes it (Phase 3), derive it
+  server-side (`p_ratee_id = games.host_id`).
+- **`my_games` past list** orders oldest-first; most-recent-first reads better.
+- **Block-a-roster-player button** on game detail has no visible effect (block
+  invisibility is host-level per the 1c non-goal); add a tooltip or reconsider.
 
 ---
 
