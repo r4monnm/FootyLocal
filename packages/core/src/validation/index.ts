@@ -94,3 +94,29 @@ export function friendlyGameError(raw: string): string {
   if (m.includes("not on this roster")) return "You're not on this game's roster.";
   return "Couldn't complete that. Please try again.";
 }
+
+/** Report reasons — mirrors the DB report_reason enum. */
+export const REPORT_REASONS = [
+  "harassment",
+  "no_show",
+  "unsafe_behavior",
+  "fake_profile",
+  "other",
+] as const;
+export type ReportReason = (typeof REPORT_REASONS)[number];
+
+/** Post-game rating input (serialized into skill_score jsonb + flags server-side). */
+export const ratingInputSchema = z.object({
+  skill: z.number().int().min(1).max(5),
+  sportsmanship: z.number().int().min(1).max(5),
+  showedUp: z.boolean(),
+  isHostRating: z.boolean(),
+});
+export type RatingInput = z.infer<typeof ratingInputSchema>;
+
+/** Report submission. */
+export const reportSchema = z.object({
+  reason: z.enum(REPORT_REASONS),
+  details: z.string().max(500).optional(),
+});
+export type ReportInput = z.infer<typeof reportSchema>;
