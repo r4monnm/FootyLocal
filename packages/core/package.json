@@ -1,0 +1,26 @@
+{
+  "name": "@footylocal/core",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "exports": {
+    ".": "./src/index.ts",
+    "./geo": "./src/geo/index.ts",
+    "./skill": "./src/skill/index.ts",
+    "./validation": "./src/validation/index.ts"
+  },
+  "scripts": {
+    "test": "vitest run",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "zod": "^3.23.0"
+  },
+  "devDependencies": {
+    "@footylocal/config": "workspace:*",
+    "typescript": "^5.6.0",
+    "vitest": "^2.0.0"
+  }
+}
