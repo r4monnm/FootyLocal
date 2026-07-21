@@ -27,7 +27,11 @@ create policy venues_read_verified on venues for select using (is_verified = tru
 create policy games_read_open on games for select
   using (status in ('open','confirmed','completed'));
 create policy games_host_all on games for all
-  using (auth.uid() = host_id) with check (auth.uid() = host_id);
+  using (auth.uid() = host_id)
+  with check (
+    auth.uid() = host_id
+    and exists (select 1 from venues v where v.id = venue_id and v.is_verified)
+  );
 
 -- game_players: a player sees rosters of games they're on; writes only own rows.
 create policy game_players_read on game_players for select
@@ -66,3 +70,16 @@ create policy standings_read on standings for select using (true);
 -- trusted_contacts: strictly private to the owner.
 create policy trusted_contacts_rw_own on trusted_contacts for all
   using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+-- Column-level protection (spec §3.1): precise_location must never be directly
+-- selectable by non-roster clients. RLS is row-level only, so we revoke table
+-- SELECT and re-grant every column EXCEPT precise_location. The games_near RPC
+-- (SECURITY DEFINER) still reads precise_location and reveals it only to
+-- on-roster callers.
+revoke select on games from anon, authenticated;
+grant select (
+  id, host_id, venue_id, title, description, starts_at, ends_at,
+  skill_band, format, max_players, price_cents, status,
+  min_players_to_confirm, is_women_only, gender_policy, guest_policy,
+  created_at, updated_at, public_location
+) on games to anon, authenticated;

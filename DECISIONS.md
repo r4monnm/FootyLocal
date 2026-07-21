@@ -17,6 +17,14 @@ point (Strava Privacy-Zone fix).
 A SECURITY DEFINER RPC returns precise_location only to on-roster callers,
 public_location otherwise. Authorization lives in the DB, not the client.
 
+## 2026-07-21 — Column-level protection for games.precise_location
+RLS is row-level, so a SELECT policy on `games` cannot hide a single column.
+We REVOKE table SELECT from anon/authenticated and re-GRANT every column except
+`precise_location`; the games_near RPC (SECURITY DEFINER) is the only path that
+reveals precise coordinates, and only to on-roster callers. Games also carry a
+`with check` requiring `venues.is_verified`, so no game can reference an
+unverified venue.
+
 ## 2026-07-21 — Tailwind v4 CSS-first tokens, mirrored in TS
 Tokens live in `packages/ui/src/tokens/index.ts` (source of truth for JS/native)
 and are mirrored into a `@theme` block in `packages/ui/src/theme.css` for
