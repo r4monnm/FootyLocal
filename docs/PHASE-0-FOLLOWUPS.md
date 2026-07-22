@@ -149,3 +149,34 @@ Final review: ready to merge after the webhook-idempotency + stripe-column fixes
 - Capture-on-confirmation (capture the held PIs when `min_players_to_confirm` met);
   refund/void on cancellation; waitlists; price floor already done (2a). (2b)
 - No-show tracking; notifications (game confirmed / spot opened / game tomorrow). (2c)
+
+---
+
+# Phase 2b — Deferred Follow-ups
+
+Final review: ready to merge (keyless build safe). The Critical (refund reverse_transfer)
++ capture idempotency are fixed (commit 907222e). Remaining items must be addressed
+before/at the point Stripe keys go live.
+
+## Money durability (before live keys)
+- **Action-driven refunds are best-effort.** `cancelGameAction`/`leaveAction` commit the
+  DB transition then call Stripe outside any transaction with no retry (unlike the
+  webhook, which Stripe retries). If the request dies mid-settle, some players are never
+  refunded with no record. Add a reconciliation sweep (find `cancelled` rows with
+  `paid=true` and no recorded refund) or move settle onto a durable queue.
+- **capture-ok-but-mark_captured-fails.** If `capturePaymentIntent` succeeds but the
+  `mark_captured` DB flip fails, `paid` stays false; a later `cancel_game` returns
+  `paid=false` → `settleCancellation` tries to VOID an already-captured PI → errors,
+  player not refunded. The reconciliation sweep should also detect captured-but-unflagged.
+- **Spec wording:** §2/§3.4 named only `refund_application_fee`; `reverse_transfer:true`
+  is required for destination-charge refunds (fixed in code, update the spec text).
+
+## UX / audit
+- **Host "Cancel game" has no confirmation.** One-way + immediately refunds/voids everyone.
+  Add a client `confirm()` / two-step confirm.
+- **Rejoin after a forfeited leave** overwrites `payment_intent_id`, losing the reference
+  to the earlier captured (forfeited) charge — audit linkage gap.
+
+## Deferred to 2c (by design)
+- Automatic expiry/void of unconfirmed games at start time (needs a scheduler).
+- No-show tracking; notifications (confirmed / spot opened / game tomorrow).
