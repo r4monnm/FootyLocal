@@ -68,7 +68,7 @@ packages/db/migrations/sql/0018_phone_verify_rpc.sql   # mark_phone_verified
 
 **This is the exploratory toolchain task.** Scaffold with the current Expo SDK, then adjust the monorepo config empirically until `npx expo export` succeeds. Report the exact SDK version and any deviation.
 
-- [ ] **Step 1: Scaffold** into `apps/mobile` (from repo root):
+- [x] **Step 1: Scaffold** into `apps/mobile` (from repo root):
 ```bash
 pnpm create expo-app apps/mobile --template blank-typescript --no-install
 ```
@@ -78,7 +78,7 @@ Then set `apps/mobile/package.json` name to `@footylocal/mobile`, add `"@footylo
 ```
 Convert to Expo Router: add deps `expo-router`, `react-native-safe-area-context`, `react-native-screens`, and set `"main": "expo-router/entry"` in package.json. Add to `app.json` `expo`: `"scheme": "footylocal"`, and `"plugins": ["expo-router"]`. Remove the template `App.tsx` (Expo Router uses `app/`).
 
-- [ ] **Step 2: Metro monorepo config** — `apps/mobile/metro.config.js`:
+- [x] **Step 2: Metro monorepo config** — `apps/mobile/metro.config.js`:
 ```js
 const { getDefaultConfig } = require("expo/metro-config");
 const path = require("path");
@@ -117,7 +117,7 @@ module.exports = function (api) {
 };
 ```
 
-- [ ] **Step 3: tsconfig strict** — `apps/mobile/tsconfig.json`:
+- [x] **Step 3: tsconfig strict** — `apps/mobile/tsconfig.json`:
 ```json
 {
   "extends": "expo/tsconfig.base",
@@ -126,14 +126,14 @@ module.exports = function (api) {
 }
 ```
 
-- [ ] **Step 4: `.gitignore` + `.env.example`** — `apps/mobile/.gitignore` must include `.env`, `.expo/`, `node_modules/`, `/tmp` export dirs. `.env.example`:
+- [x] **Step 4: `.gitignore` + `.env.example`** — `apps/mobile/.gitignore` must include `.env`, `.expo/`, `node_modules/`, `/tmp` export dirs. `.env.example`:
 ```
 EXPO_PUBLIC_SUPABASE_URL=
 EXPO_PUBLIC_SUPABASE_ANON_KEY=
 ```
 Create the real gitignored `apps/mobile/.env` by copying the URL + anon key from the repo-root `.env` (`NEXT_PUBLIC_SUPABASE_URL` → `EXPO_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` → `EXPO_PUBLIC_SUPABASE_ANON_KEY`). **Never** copy the service-role key.
 
-- [ ] **Step 5: Core-import smoke screen** — `apps/mobile/app/_layout.tsx`:
+- [x] **Step 5: Core-import smoke screen** — `apps/mobile/app/_layout.tsx`:
 ```tsx
 import { Stack } from "expo-router";
 export default function RootLayout() {
@@ -153,7 +153,7 @@ export default function Index() {
 }
 ```
 
-- [ ] **Step 6: Install + verify Metro bundles** (from repo root):
+- [x] **Step 6: Install + verify Metro bundles** (from repo root):
 ```bash
 pnpm install
 pnpm --filter @footylocal/mobile typecheck
@@ -161,7 +161,7 @@ cd apps/mobile && npx expo export --platform ios --output-dir /tmp/fl-export && 
 ```
 Expected: typecheck clean; `expo export` completes without a resolution error for `@footylocal/core` (proves Metro resolves the workspace TS source incl. its `.js` imports). **If pnpm's symlinked layout breaks Metro**, the accepted fallback is adding `node-linker=hoisted` to the repo-root `.npmrc` and re-installing — if you do this, REPORT it as a concern (it changes install strategy repo-wide; the web app must still `pnpm --filter @footylocal/web build`). Prefer the symlinked approach if it works.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 ```bash
 git add -A && git commit -m "feat(mobile): scaffold Expo Router app + monorepo Metro config + core import"
 ```
@@ -174,9 +174,9 @@ git add -A && git commit -m "feat(mobile): scaffold Expo Router app + monorepo M
 
 **Interfaces:** Produces `theme` (colors/spacing/radius), and components `Screen`, `Badge`, `Button`, `Pill`, `Field`, `StatTile` used by all screens.
 
-- [ ] **Step 1: Fonts deps** — add `expo-font`, `@expo-google-fonts/anton`, `@expo-google-fonts/inter`, `expo-splash-screen`; `pnpm install`.
+- [x] **Step 1: Fonts deps** — add `expo-font`, `@expo-google-fonts/anton`, `@expo-google-fonts/inter`, `expo-splash-screen`; `pnpm install`.
 
-- [ ] **Step 2: `theme.ts`**
+- [x] **Step 2: `theme.ts`**
 ```ts
 export const colors = {
   ink: "#111111",
@@ -192,7 +192,7 @@ export const space = (n: number) => n * 4;
 export const font = { display: "Anton_400Regular", body: "Inter_400Regular", bodySemibold: "Inter_600SemiBold" };
 ```
 
-- [ ] **Step 3: `components/ui.tsx`** (complete primitives)
+- [x] **Step 3: `components/ui.tsx`** (complete primitives)
 ```tsx
 import { ReactNode } from "react";
 import { View, Text, Pressable, TextInput, ScrollView, StyleSheet, TextInputProps } from "react-native";
@@ -253,7 +253,7 @@ export function ErrorText({ children }: { children: ReactNode }) {
 const _s = StyleSheet.create({});
 ```
 
-- [ ] **Step 4: Load fonts in `_layout.tsx`** (replace Task 1's `_layout`):
+- [x] **Step 4: Load fonts in `_layout.tsx`** (replace Task 1's `_layout`):
 ```tsx
 import { useEffect } from "react";
 import { Stack } from "expo-router";
@@ -272,7 +272,7 @@ export default function RootLayout() {
 ```
 (The session gate is layered on in Task 3.)
 
-- [ ] **Step 5: Verify + commit**
+- [x] **Step 5: Verify + commit**
 ```bash
 pnpm --filter @footylocal/mobile typecheck
 git add -A && git commit -m "feat(mobile): Nike theme tokens, UI primitives, Anton/Inter fonts"
@@ -286,9 +286,9 @@ git add -A && git commit -m "feat(mobile): Nike theme tokens, UI primitives, Ant
 
 **Interfaces:** Produces `supabase` (anon client), `useSession()` → `{ session, loading }`, and the auth routing gate.
 
-- [ ] **Step 1: Deps** — add `@supabase/supabase-js`, `@react-native-async-storage/async-storage`, `react-native-url-polyfill`; `pnpm install`.
+- [x] **Step 1: Deps** — add `@supabase/supabase-js`, `@react-native-async-storage/async-storage`, `react-native-url-polyfill`; `pnpm install`.
 
-- [ ] **Step 2: `lib/supabase.ts`**
+- [x] **Step 2: `lib/supabase.ts`**
 ```ts
 import "react-native-url-polyfill/auto";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -308,7 +308,7 @@ AppState.addEventListener("change", (state) => {
 });
 ```
 
-- [ ] **Step 3: `lib/session.tsx`**
+- [x] **Step 3: `lib/session.tsx`**
 ```tsx
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import type { Session } from "@supabase/supabase-js";
@@ -329,7 +329,7 @@ export function SessionProvider({ children }: { children: ReactNode }) {
 }
 ```
 
-- [ ] **Step 4: Auth routing in `_layout.tsx`** — wrap the `Stack` and redirect by session. Replace the `_layout` body with:
+- [x] **Step 4: Auth routing in `_layout.tsx`** — wrap the `Stack` and redirect by session. Replace the `_layout` body with:
 ```tsx
 import { useEffect } from "react";
 import { Stack, useRouter, useSegments } from "expo-router";
@@ -362,7 +362,7 @@ export default function RootLayout() {
 ```
 Delete `app/index.tsx` (routing now targets `(auth)`/`(tabs)`).
 
-- [ ] **Step 5: `app/(auth)/sign-in.tsx`**
+- [x] **Step 5: `app/(auth)/sign-in.tsx`**
 ```tsx
 import { useState } from "react";
 import { useRouter, Link } from "expo-router";
@@ -396,7 +396,7 @@ export default function SignIn() {
 }
 ```
 
-- [ ] **Step 6: `app/(auth)/sign-up.tsx`** (18+ required via `signUpSchema`)
+- [x] **Step 6: `app/(auth)/sign-up.tsx`** (18+ required via `signUpSchema`)
 ```tsx
 import { useState } from "react";
 import { Pressable, View, Text } from "react-native";
@@ -440,7 +440,7 @@ export default function SignUp() {
 ```
 Note: Supabase may require email confirmation OFF for an immediate session (it is OFF for this project — see Phase 0 followups). If no session is returned, the gate keeps the user in `(auth)`; that is acceptable.
 
-- [ ] **Step 7: Verify + commit**
+- [x] **Step 7: Verify + commit**
 ```bash
 pnpm --filter @footylocal/mobile typecheck
 git add -A && git commit -m "feat(mobile): Supabase anon client, session gate, sign-in/sign-up (18+)"
@@ -454,7 +454,7 @@ git add -A && git commit -m "feat(mobile): Supabase anon client, session gate, s
 
 **Interfaces:** Produces the RPC `mark_phone_verified()` and the verify-phone screen calling it.
 
-- [ ] **Step 1: `packages/db/migrations/sql/0018_phone_verify_rpc.sql`**
+- [x] **Step 1: `packages/db/migrations/sql/0018_phone_verify_rpc.sql`**
 ```sql
 -- Phone verification for clients without a server action (the native app).
 -- 0017 made phone_verified non-client-writable; web flips it via a service-role
@@ -483,14 +483,14 @@ revoke execute on function mark_phone_verified() from public, anon;
 grant execute on function mark_phone_verified() to authenticated;
 ```
 
-- [ ] **Step 2: Apply live + smoke** (from repo root, env sourced):
+- [x] **Step 2: Apply live + smoke** (from repo root, env sourced):
 ```bash
 set -a; . ./.env; set +a
 pnpm --filter @footylocal/db sql
 ```
 Then a temp `.ts` smoke (write file, run, delete — `tsx -e` fails in this repo). Verify with the `postgres` client (as scripts/apply-sql.ts) that `authenticated` HAS execute on `mark_phone_verified` and that `id_verified` is still NOT client-updatable (unchanged from 0017): `has_function_privilege('authenticated','mark_phone_verified()','EXECUTE')` → true; `has_column_privilege('authenticated','profiles','id_verified','UPDATE')` → false. Full `pnpm sql` replay (0000–0018) must be clean.
 
-- [ ] **Step 3: `app/(auth)/verify-phone.tsx`** (dev OTP 000000)
+- [x] **Step 3: `app/(auth)/verify-phone.tsx`** (dev OTP 000000)
 ```tsx
 import { useState } from "react";
 import { useRouter } from "expo-router";
@@ -527,7 +527,7 @@ export default function VerifyPhone() {
 ```
 (Skip lets an unverified user browse; Join is gated in Task 6.)
 
-- [ ] **Step 4: Verify + commit**
+- [x] **Step 4: Verify + commit**
 ```bash
 pnpm --filter @footylocal/mobile typecheck && pnpm --filter @footylocal/db typecheck
 git add -A && git commit -m "feat(mobile,db): mark_phone_verified RPC (0018) + verify-phone screen"
@@ -541,9 +541,9 @@ git add -A && git commit -m "feat(mobile,db): mark_phone_verified RPC (0018) + v
 
 **Interfaces:** Produces the bottom-tab navigator (Discover · My Games · Profile) and the Discover list.
 
-- [ ] **Step 1: Deps** — add `expo-location`; `pnpm install`.
+- [x] **Step 1: Deps** — add `expo-location`; `pnpm install`.
 
-- [ ] **Step 2: `app/(tabs)/_layout.tsx`**
+- [x] **Step 2: `app/(tabs)/_layout.tsx`**
 ```tsx
 import { Tabs } from "expo-router";
 import { colors } from "../../theme";
@@ -558,7 +558,7 @@ export default function TabsLayout() {
 }
 ```
 
-- [ ] **Step 3: `app/(tabs)/discover.tsx`** (location → games_near → list)
+- [x] **Step 3: `app/(tabs)/discover.tsx`** (location → games_near → list)
 ```tsx
 import { useCallback, useState } from "react";
 import { View, Text, Pressable, FlatList } from "react-native";
@@ -639,7 +639,7 @@ export default function Discover() {
 ```
 Also add `expo-location` permission strings to `app.json` (`ios.infoPlist.NSLocationWhenInUseUsageDescription`, `android.permissions` includes `ACCESS_FINE_LOCATION`) via the `expo-location` config plugin: add `["expo-location", { "locationWhenInUsePermission": "FootyLocal shows games near you." }]` to `plugins`.
 
-- [ ] **Step 4: Verify + commit**
+- [x] **Step 4: Verify + commit**
 ```bash
 pnpm --filter @footylocal/mobile typecheck
 cd apps/mobile && npx expo export --platform ios --output-dir /tmp/fl-export2 && cd -
@@ -655,7 +655,7 @@ git add -A && git commit -m "feat(mobile): tabs + Discover (location + games_nea
 
 **Interfaces:** Consumes `game_detail`, `join_game`, `leave_game`, `profile_stats`, `profiles`; `computeTier`, `verificationSummary`, `googleDirectionsUrl`, `friendlyGameError`.
 
-- [ ] **Step 1: `app/game/[id].tsx`** (complete)
+- [x] **Step 1: `app/game/[id].tsx`** (complete)
 ```tsx
 import { useCallback, useState } from "react";
 import { View, Text, Linking } from "react-native";
@@ -781,7 +781,7 @@ export default function GameDetail() {
 ```
 Note: the "Leave" control shows for any joined non-host; the host cannot leave (server `leave_game` rejects it and `friendlyGameError` surfaces the message). Keep it simple — the DB is authoritative.
 
-- [ ] **Step 2: Verify + commit**
+- [x] **Step 2: Verify + commit**
 ```bash
 pnpm --filter @footylocal/mobile typecheck
 git add -A && git commit -m "feat(mobile): game detail + join/leave + reveal (address + open-in-maps)"
@@ -795,7 +795,7 @@ git add -A && git commit -m "feat(mobile): game detail + join/leave + reveal (ad
 
 **Interfaces:** Consumes `my_games`, `profile_stats`, `profiles`; `computeTier`, `verificationSummary`.
 
-- [ ] **Step 1: `app/(tabs)/my-games.tsx`**
+- [x] **Step 1: `app/(tabs)/my-games.tsx`**
 ```tsx
 import { useCallback, useState } from "react";
 import { View, Text, Pressable } from "react-native";
@@ -836,7 +836,7 @@ export default function MyGames() {
 }
 ```
 
-- [ ] **Step 2: `app/(tabs)/profile.tsx`** (read-only)
+- [x] **Step 2: `app/(tabs)/profile.tsx`** (read-only)
 ```tsx
 import { useCallback, useState } from "react";
 import { View } from "react-native";
@@ -895,7 +895,7 @@ export default function Profile() {
 }
 ```
 
-- [ ] **Step 3: Verify + commit**
+- [x] **Step 3: Verify + commit**
 ```bash
 pnpm --filter @footylocal/mobile typecheck
 cd apps/mobile && npx expo export --platform ios --output-dir /tmp/fl-export3 && cd -
@@ -906,14 +906,14 @@ git add -A && git commit -m "feat(mobile): My Games + read-only Profile (tier + 
 
 ## Final Verification (Definition of Done)
 
-- [ ] `pnpm --filter @footylocal/mobile typecheck` clean; `npx expo export` bundles the whole app (Metro resolves `@footylocal/core` from source); `packages/core` tests still green.
-- [ ] Auth: sign-up (18+), sign-in (friendly errors), session persists across restarts; verify-phone flips `phone_verified` via `mark_phone_verified`.
-- [ ] Discover lists nearby games (location + `games_near` + skill filter + distance); no map.
-- [ ] Game detail shows host tier + verification badges; free Join/Leave via RPCs; paid Join disabled; Reveal (address + Open in Maps) only after joining.
-- [ ] My Games (upcoming/past) + read-only Profile (tier + verification badges + stats + sign out).
-- [ ] Migration 0018 applied; `authenticated` can execute `mark_phone_verified`; `id_verified` still not client-writable; replay idempotent.
-- [ ] Service-role key absent from `apps/mobile`; `packages/db` not imported; anon key only.
-- [ ] Nike tokens + Anton/Inter applied.
+- [x] `pnpm --filter @footylocal/mobile typecheck` clean; `npx expo export` bundles the whole app (Metro resolves `@footylocal/core` from source); `packages/core` tests still green.
+- [x] Auth: sign-up (18+), sign-in (friendly errors), session persists across restarts; verify-phone flips `phone_verified` via `mark_phone_verified`.
+- [x] Discover lists nearby games (location + `games_near` + skill filter + distance); no map.
+- [x] Game detail shows host tier + verification badges; free Join/Leave via RPCs; paid Join disabled; Reveal (address + Open in Maps) only after joining.
+- [x] My Games (upcoming/past) + read-only Profile (tier + verification badges + stats + sign out).
+- [x] Migration 0018 applied; `authenticated` can execute `mark_phone_verified`; `id_verified` still not client-writable; replay idempotent.
+- [x] Service-role key absent from `apps/mobile`; `packages/db` not imported; anon key only.
+- [x] Nike tokens + Anton/Inter applied.
 - [ ] **Human on-device Expo Go smoke** (not an implementer gate): full loop sign-up→verify→discover→join→reveal→leave on a real phone; precise address absent before join, present after.
 
 ## Self-Review Notes (author)
