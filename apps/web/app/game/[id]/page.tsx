@@ -81,18 +81,24 @@ export default async function GamePage({
     phoneVerified = data?.phone_verified ?? false;
   }
 
-  const hostTier = await tierFor(game.host_id);
-  const viewerTier = user ? await tierFor(user.id) : null;
-  const belowLevel =
-    !!viewerTier &&
-    !game.viewer_joined &&
-    (game.skill_band as GameBand) !== "open" &&
-    !meetsBand(viewerTier.band, game.skill_band as GameBand);
-
   const spots = game.max_players - Number(game.joined_count);
   const isWaitlisted = game.viewer_status === "waitlisted";
   const isCancelled = game.status === "cancelled";
   const isConfirmed = game.status === "confirmed";
+
+  const hostTier = await tierFor(game.host_id);
+  // Only fetch the viewer's tier when the below-level warning could actually
+  // render — avoids 2 wasted DB round trips on already-joined / cancelled /
+  // waitlisted / unverified views (the common paths).
+  const canWarn =
+    !!user &&
+    !game.viewer_joined &&
+    !isCancelled &&
+    !isWaitlisted &&
+    phoneVerified &&
+    (game.skill_band as GameBand) !== "open";
+  const viewerTier = canWarn ? await tierFor(user!.id) : null;
+  const belowLevel = !!viewerTier && !meetsBand(viewerTier.band, game.skill_band as GameBand);
   const isHost = user?.id === game.host_id;
   const isPast = new Date(game.ends_at).getTime() < Date.now();
   const isPaid = game.price_cents > 0;
