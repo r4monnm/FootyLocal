@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { googleDirectionsUrl } from "@footylocal/core";
+import { computeTier, meetsBand, googleDirectionsUrl, type SkillBand, type GameBand } from "@footylocal/core";
 import { Badge, Button } from "@footylocal/ui";
 import { createClient } from "@/lib/supabase/server";
 import { paymentsEnabled } from "@/lib/stripe";
@@ -59,6 +59,19 @@ export default async function GamePage({
     );
   }
 
+  async function tierFor(userId: string) {
+    const [{ data: s }, { data: p }] = await Promise.all([
+      supabase.rpc("profile_stats", { p_user_id: userId }),
+      supabase.from("profiles").select("self_reported_skill").eq("id", userId).single(),
+    ]);
+    const stat = s?.[0];
+    return computeTier(
+      stat?.avg_skill != null ? Number(stat.avg_skill) : null,
+      stat ? Number(stat.ratings_count) : 0,
+      (p?.self_reported_skill ?? null) as SkillBand | null,
+    );
+  }
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -67,6 +80,14 @@ export default async function GamePage({
     const { data } = await supabase.from("profiles").select("phone_verified").eq("id", user.id).single();
     phoneVerified = data?.phone_verified ?? false;
   }
+
+  const hostTier = await tierFor(game.host_id);
+  const viewerTier = user ? await tierFor(user.id) : null;
+  const belowLevel =
+    !!viewerTier &&
+    !game.viewer_joined &&
+    (game.skill_band as GameBand) !== "open" &&
+    !meetsBand(viewerTier.band, game.skill_band as GameBand);
 
   const spots = game.max_players - Number(game.joined_count);
   const isWaitlisted = game.viewer_status === "waitlisted";
@@ -95,7 +116,7 @@ export default async function GamePage({
         <span>{game.venue_address}</span>
         <span>{game.surface_type} · {game.format.replace(/_/g, " ")}</span>
         <span>{new Date(game.starts_at).toLocaleString()} – {new Date(game.ends_at).toLocaleTimeString()}</span>
-        <span>host: {game.host_name ?? "—"}</span>
+        <span>host: {game.host_name ?? "—"} · <span className="uppercase">{hostTier.band}</span></span>
         <span>{spots} of {game.max_players} spots left</span>
         {game.is_women_only && <span>women-only</span>}
       </div>
@@ -216,20 +237,28 @@ export default async function GamePage({
               Verify your phone to join →
             </Link>
           ) : (
-            <form>
-              <input type="hidden" name="gameId" value={game.id} />
-              {isPaid && paymentsEnabled() ? (
-                <Button variant="accent" formAction={joinPaidAction}>
-                  {spots > 0 ? `Join${priceLabel}` : `Join waitlist${priceLabel}`}
-                </Button>
-              ) : isPaid ? (
-                <Button variant="accent" disabled>Paid join unavailable</Button>
-              ) : (
-                <Button variant="accent" formAction={joinAction}>
-                  {spots > 0 ? "Join game" : "Join waitlist"}
-                </Button>
+            <>
+              {belowLevel && (
+                <p className="text-sm text-neutral-500">
+                  This game is rated <span className="uppercase">{game.skill_band}</span> — above your{" "}
+                  <span className="uppercase">{viewerTier!.band}</span> level. You can still join.
+                </p>
               )}
-            </form>
+              <form>
+                <input type="hidden" name="gameId" value={game.id} />
+                {isPaid && paymentsEnabled() ? (
+                  <Button variant="accent" formAction={joinPaidAction}>
+                    {spots > 0 ? `Join${priceLabel}` : `Join waitlist${priceLabel}`}
+                  </Button>
+                ) : isPaid ? (
+                  <Button variant="accent" disabled>Paid join unavailable</Button>
+                ) : (
+                  <Button variant="accent" formAction={joinAction}>
+                    {spots > 0 ? "Join game" : "Join waitlist"}
+                  </Button>
+                )}
+              </form>
+            </>
           )}
         </section>
       )}
