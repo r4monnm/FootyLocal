@@ -1,8 +1,16 @@
 import { Badge } from "@footylocal/ui";
 import { createClient } from "@/lib/supabase/server";
 import { unblockAction } from "./actions";
+import { paymentsEnabled, retrieveChargesEnabled } from "@/lib/stripe";
+import { createServiceClient } from "@footylocal/db";
+import { startOnboardingAction } from "./payout-actions";
 
-export default async function Profile() {
+export default async function Profile({
+  searchParams,
+}: {
+  searchParams: Promise<{ onboarding?: string }>;
+}) {
+  const { onboarding } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -43,6 +51,24 @@ export default async function Profile() {
     }
   }
 
+  let chargesEnabled = false;
+  if (user && paymentsEnabled()) {
+    const svc = createServiceClient();
+    const { data: pay } = await svc
+      .from("profiles")
+      .select("stripe_account_id, stripe_charges_enabled")
+      .eq("id", user.id)
+      .single();
+    chargesEnabled = pay?.stripe_charges_enabled ?? false;
+    // On return from onboarding, refresh status on demand.
+    if (onboarding === "done" && pay?.stripe_account_id && !chargesEnabled) {
+      chargesEnabled = await retrieveChargesEnabled(pay.stripe_account_id);
+      if (chargesEnabled) {
+        await svc.from("profiles").update({ stripe_charges_enabled: true }).eq("id", user.id);
+      }
+    }
+  }
+
   return (
     <section className="flex flex-col gap-6">
       <h1 className="display text-6xl">{displayName ?? "Profile"}</h1>
@@ -62,6 +88,22 @@ export default async function Profile() {
           </div>
         ))}
       </div>
+
+      {paymentsEnabled() && (
+        <div>
+          <h2 className="text-xs uppercase text-neutral-500">Payouts</h2>
+          {chargesEnabled ? (
+            <div className="mt-2"><Badge tone="accent">payouts active</Badge></div>
+          ) : (
+            <form className="mt-2">
+              <button formAction={startOnboardingAction}
+                className="rounded-[var(--radius-pill)] bg-ink px-6 py-3 text-sm font-semibold uppercase text-accent">
+                Set up payouts
+              </button>
+            </form>
+          )}
+        </div>
+      )}
 
       <div>
         <h2 className="text-xs uppercase text-neutral-500">Blocked users</h2>

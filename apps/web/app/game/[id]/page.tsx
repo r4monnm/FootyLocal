@@ -2,8 +2,10 @@ import Link from "next/link";
 import { googleDirectionsUrl } from "@footylocal/core";
 import { Badge, Button } from "@footylocal/ui";
 import { createClient } from "@/lib/supabase/server";
+import { paymentsEnabled } from "@/lib/stripe";
 import { GameLocationMap } from "./GameLocationMap";
 import { joinAction, leaveAction } from "./actions";
+import { joinPaidAction } from "./pay-actions";
 import { blockAction } from "./trust-actions";
 
 type RosterEntry = { player_id: string; name: string | null; role: string };
@@ -18,6 +20,7 @@ type Detail = {
   is_women_only: boolean;
   max_players: number;
   status: string;
+  price_cents: number;
   host_id: string;
   host_name: string | null;
   venue_name: string;
@@ -35,10 +38,10 @@ export default async function GamePage({
   searchParams,
 }: {
   params: Promise<{ id: string }>;
-  searchParams: Promise<{ error?: string }>;
+  searchParams: Promise<{ error?: string; paid?: string }>;
 }) {
   const { id } = await params;
-  const { error } = await searchParams;
+  const { error, paid } = await searchParams;
   const supabase = await createClient();
 
   const { data: rows } = await supabase.rpc("game_detail", { p_game_id: id });
@@ -63,6 +66,8 @@ export default async function GamePage({
 
   const spots = game.max_players - Number(game.joined_count);
   const isHost = user?.id === game.host_id;
+  const isPaid = game.price_cents > 0;
+  const priceLabel = isPaid ? ` · $${(game.price_cents / 100).toFixed(0)}` : "";
 
   return (
     <main className="mx-auto flex max-w-2xl flex-col gap-6 px-6 py-8">
@@ -74,6 +79,8 @@ export default async function GamePage({
       </div>
 
       {error && <p className="text-[var(--color-error)] text-sm">{error}</p>}
+      {paid === "cancel" && <p className="text-sm text-neutral-500">Payment canceled — you're not on the roster.</p>}
+      {paid === "success" && <p className="text-sm text-[var(--color-success)]">Payment received — confirming your spot…</p>}
 
       <div className="flex flex-col gap-1 text-sm text-neutral-600">
         <span className="text-ink">{game.venue_name}</span>
@@ -160,7 +167,13 @@ export default async function GamePage({
           ) : (
             <form>
               <input type="hidden" name="gameId" value={game.id} />
-              <Button variant="accent" formAction={joinAction}>Join game</Button>
+              {isPaid && paymentsEnabled() ? (
+                <Button variant="accent" formAction={joinPaidAction}>Join{priceLabel}</Button>
+              ) : isPaid ? (
+                <Button variant="accent" disabled>Paid join unavailable</Button>
+              ) : (
+                <Button variant="accent" formAction={joinAction}>Join game</Button>
+              )}
             </form>
           )}
         </section>

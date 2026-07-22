@@ -120,3 +120,32 @@ Remaining items are non-blocking.
   XSS); optionally validate against the known friendly-copy set.
 - Deprecated `google.maps.Marker` used in the reveal mini-map (matches DiscoverMap;
   modernize to `AdvancedMarkerElement` together).
+
+---
+
+# Phase 2a — Deferred Follow-ups
+
+Final review: ready to merge after the webhook-idempotency + stripe-column fixes
+(done, commit 6b9ce79). Remaining items non-blocking.
+
+## Robustness (before keys go live / in 2b)
+- **Webhook idempotency table.** The join case is handled (dup → don't cancel), but a
+  `stripe_events(id primary key)` insert-or-skip would make `account.updated` and the
+  2b capture events safely idempotent under Stripe's at-least-once delivery.
+- **Stripe `idempotencyKey`** on `checkout.sessions.create` (e.g. `join:{gameId}:{playerId}`)
+  so repeated Join clicks don't create multiple authorizations.
+- **Generate Supabase `Database` types** — the webhook's swallowed-error path (now fixed)
+  would have been caught at compile time; `.rpc()/.from()` are currently `any`.
+- **Webhook mislabels a 400** ("bad signature") if `STRIPE_WEBHOOK_SECRET` is set but
+  `STRIPE_SECRET_KEY` isn't; check `paymentsEnabled()`/construct the client first → 503.
+
+## Polish
+- **`?payouts=required`** redirect (un-onboarded host tries a paid game) shows no banner
+  on Profile — read the param and render "Set up payouts to host paid games."
+- **Price accepts cents but displays whole dollars** — `priceUsd=5.50` → charges $5.50 but
+  the Join label shows "$5". Clamp to whole dollars server-side or display `.toFixed(2)`.
+
+## Deferred to 2b / 2c (by design)
+- Capture-on-confirmation (capture the held PIs when `min_players_to_confirm` met);
+  refund/void on cancellation; waitlists; price floor already done (2a). (2b)
+- No-show tracking; notifications (game confirmed / spot opened / game tomorrow). (2c)
