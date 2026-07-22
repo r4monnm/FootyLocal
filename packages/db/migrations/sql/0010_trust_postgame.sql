@@ -73,6 +73,9 @@ $$;
 grant execute on function profile_stats(uuid) to anon, authenticated;
 
 -- The caller's roster games (upcoming + past), for the My Games tab.
+-- drop-first so the replay stays re-runnable after 0014 changes my_games'
+-- return shape (adds status/player_status columns).
+drop function if exists my_games();
 create or replace function my_games()
 returns table (
   id uuid,
@@ -164,7 +167,9 @@ grant execute on function games_near(double precision, double precision, integer
   to anon, authenticated;
 
 -- Rebuild game_detail: add the same host block exclusion (blocked host's game
--- returns no row). Same return shape as 0008, so CREATE OR REPLACE is valid.
+-- returns no row). drop-first so the replay stays re-runnable after 0014
+-- changes game_detail's return shape.
+drop function if exists game_detail(uuid);
 create or replace function game_detail(p_game_id uuid)
 returns table (
   id uuid,

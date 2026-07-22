@@ -3,6 +3,9 @@
 
 -- Single-game detail. precise_* and roster are null unless the caller is on
 -- the roster (status='joined').
+-- drop-first so the full apply-sql replay stays re-runnable after later
+-- migrations change game_detail's return shape (0010/0014).
+drop function if exists game_detail(uuid);
 create or replace function game_detail(p_game_id uuid)
 returns table (
   id uuid,
@@ -121,6 +124,9 @@ $$;
 grant execute on function join_game(uuid) to authenticated;
 
 -- Leave (cancel the caller's roster row). Host cannot leave their own game.
+-- drop-first so the replay stays re-runnable after 0014 changes leave_game's
+-- return shape (text -> table).
+drop function if exists leave_game(uuid);
 create or replace function leave_game(p_game_id uuid)
 returns text
 language plpgsql
