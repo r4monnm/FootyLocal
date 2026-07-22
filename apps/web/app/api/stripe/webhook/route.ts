@@ -2,6 +2,7 @@ import { type NextRequest, NextResponse } from "next/server";
 import type Stripe from "stripe";
 import { createServiceClient } from "@footylocal/db";
 import { getStripe, cancelPaymentIntent } from "@/lib/stripe";
+import { settleConfirmation } from "@/lib/payments/settle";
 
 export async function POST(req: NextRequest): Promise<NextResponse> {
   const secret = process.env.STRIPE_WEBHOOK_SECRET;
@@ -43,12 +44,12 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       if (error) {
         return NextResponse.json({ error: "join failed" }, { status: 500 });
       }
-      // Only a genuine non-join (full/closed) forfeits the hold. "joined" and
-      // "dup" (an at-least-once redelivery of an already-joined player) must
-      // keep it intact.
-      if (data === "full" || data === "closed") {
+      if (data === "closed") {
         await cancelPaymentIntent(paymentIntent);
+      } else if (data === "joined") {
+        await settleConfirmation(gameId);
       }
+      // 'waitlisted' / 'dup' → keep the hold, nothing to settle.
     }
   }
 

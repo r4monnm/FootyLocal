@@ -77,3 +77,11 @@ export async function createPaidJoinCheckout(opts: {
 export async function cancelPaymentIntent(id: string): Promise<void> {
   await getStripe().paymentIntents.cancel(id);
 }
+
+export async function capturePaymentIntent(id: string): Promise<void> {
+  await getStripe().paymentIntents.capture(id);
+}
+
+export async function refundPaymentIntent(id: string): Promise<void> {
+  await getStripe().refunds.create({ payment_intent: id, refund_application_fee: true });
+}
