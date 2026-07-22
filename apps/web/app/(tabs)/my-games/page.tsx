@@ -10,6 +10,8 @@ type MyGame = {
   venue_name: string;
   role: string;
   is_past: boolean;
+  status: string;
+  player_status: string;
 };
 
 export default async function MyGames() {
@@ -23,6 +25,9 @@ export default async function MyGames() {
     <Card className="border border-gray p-4">
       <div className="flex items-center justify-between">
         <Link href={`/game/${g.id}`} className="display text-xl">{g.title}</Link>
+        {g.player_status === "waitlisted" && <Badge>waitlist</Badge>}
+        {g.status === "confirmed" && <Badge tone="accent">confirmed</Badge>}
+        {g.status === "cancelled" && <span className="text-xs uppercase text-[var(--color-error)]">cancelled</span>}
         {g.role === "host" && <Badge tone="accent">host</Badge>}
       </div>
       <div className="mt-1 flex flex-wrap gap-3 text-sm text-neutral-600">
