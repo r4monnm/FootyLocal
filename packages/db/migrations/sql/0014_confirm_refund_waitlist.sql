@@ -104,7 +104,9 @@ declare v_host uuid;
 begin
   select host_id into v_host from games where id = p_game_id for update;
   if not found then raise exception 'game not found'; end if;
-  if v_host <> auth.uid() then raise exception 'only the host can cancel this game'; end if;
+  if auth.uid() is null or v_host <> auth.uid() then
+    raise exception 'only the host can cancel this game';
+  end if;
   update games set status = 'cancelled' where id = p_game_id;
   return query
     with c as (
@@ -132,6 +134,7 @@ declare
   v_starts timestamptz;
 begin
   if v_player is null then raise exception 'not authenticated'; end if;
+  perform 1 from games where id = p_game_id for update;
   select gp.role, gp.status, gp.payment_intent_id, gp.paid, g.starts_at
     into v_role, v_status, v_pi, v_paid, v_starts
   from game_players gp join games g on g.id = gp.game_id
