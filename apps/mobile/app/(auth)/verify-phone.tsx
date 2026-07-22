@@ -1,8 +1,10 @@
 import { useState } from "react";
+import { View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
 import { otpSchema } from "@footylocal/core";
 import { supabase } from "../../lib/supabase";
-import { Screen, Title, Field, Button, ErrorText, Muted } from "../../components/ui";
+import { AuthScreen, Wordmark, AuthHeading, PillField, GradientButton, ErrorText } from "../../components/ui";
+import { colors, font, space } from "../../theme";
 
 export default function VerifyPhone() {
   const router = useRouter();
@@ -20,13 +22,17 @@ export default function VerifyPhone() {
     else router.replace("/(tabs)/discover");
   }
   return (
-    <Screen>
-      <Title>Verify phone</Title>
-      <Muted>Enter 000000 (dev). Real SMS comes later.</Muted>
+    <AuthScreen>
+      <Wordmark />
+      <AuthHeading title="Verify your phone" subtitle="Players who join games are phone-verified. Enter 000000 while SMS is stubbed." />
       {error && <ErrorText>{error}</ErrorText>}
-      <Field label="6-digit code" keyboardType="number-pad" value={code} onChangeText={setCode} maxLength={6} />
-      <Button label={busy ? "…" : "Verify"} onPress={submit} disabled={busy} variant="accent" />
-      <Button label="Skip for now" onPress={() => router.replace("/(tabs)/discover")} variant="outline" />
-    </Screen>
+      <PillField placeholder="6-digit code" keyboardType="number-pad" value={code} onChangeText={setCode} maxLength={6} textAlign="center" />
+      <View style={{ marginTop: space(2) }}>
+        <GradientButton label={busy ? "Verifying…" : "Verify"} onPress={submit} disabled={busy} />
+      </View>
+      <Pressable onPress={() => router.replace("/(tabs)/discover")} style={{ alignItems: "center", marginTop: space(3) }} hitSlop={8}>
+        <Text style={{ color: colors.muted, fontFamily: font.body, fontSize: 14 }}>Skip for now</Text>
+      </Pressable>
+    </AuthScreen>
   );
 }

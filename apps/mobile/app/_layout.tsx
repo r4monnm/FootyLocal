@@ -3,7 +3,9 @@ import { Stack, useRouter, useSegments } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { useFonts, Anton_400Regular } from "@expo-google-fonts/anton";
 import { Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
+import { StatusBar } from "expo-status-bar";
 import { SessionProvider, useSession } from "../lib/session";
+import { colors } from "../theme";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -17,7 +19,12 @@ function Gate() {
     if (!session && !inAuth) router.replace("/(auth)/sign-in");
     else if (session && inAuth) router.replace("/(tabs)/discover");
   }, [session, loading, segments]);
-  return <Stack screenOptions={{ headerShown: false }} />;
+  return (
+    <>
+      <StatusBar style="light" />
+      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface } }} />
+    </>
+  );
 }
 
 export default function RootLayout() {

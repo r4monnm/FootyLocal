@@ -6,7 +6,8 @@
     "scheme": "footylocal",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0B0F0A",
     "ios": {
       "supportsTablet": true,
       "infoPlist": {

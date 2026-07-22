@@ -1,8 +1,10 @@
 import { useState } from "react";
-import { useRouter, Link } from "expo-router";
+import { View } from "react-native";
+import { useRouter } from "expo-router";
 import { friendlyAuthError } from "@footylocal/core";
 import { supabase } from "../../lib/supabase";
-import { Screen, Title, Field, Button, ErrorText, Muted } from "../../components/ui";
+import { AuthScreen, Wordmark, AuthHeading, PillField, GradientButton, ErrorText, AuthFooterLink } from "../../components/ui";
+import { space } from "../../theme";
 
 export default function SignIn() {
   const router = useRouter();
@@ -18,13 +20,18 @@ export default function SignIn() {
     else router.replace("/(tabs)/discover");
   }
   return (
-    <Screen>
-      <Title>Sign in</Title>
+    <AuthScreen>
+      <Wordmark />
+      <AuthHeading title="Welcome back" subtitle="Sign in to find pickup games near you." />
       {error && <ErrorText>{error}</ErrorText>}
-      <Field label="Email" autoCapitalize="none" keyboardType="email-address" value={email} onChangeText={setEmail} />
-      <Field label="Password" secureTextEntry value={password} onChangeText={setPassword} />
-      <Button label={busy ? "…" : "Sign in"} onPress={submit} disabled={busy} variant="accent" />
-      <Link href="/(auth)/sign-up"><Muted>New here? Create an account →</Muted></Link>
-    </Screen>
+      <View style={{ gap: space(3) }}>
+        <PillField placeholder="Email address" autoCapitalize="none" autoComplete="email" keyboardType="email-address" value={email} onChangeText={setEmail} />
+        <PillField placeholder="Password" secureToggle value={password} onChangeText={setPassword} />
+      </View>
+      <View style={{ marginTop: space(2) }}>
+        <GradientButton label={busy ? "Signing in…" : "Sign In"} onPress={submit} disabled={busy} />
+      </View>
+      <AuthFooterLink prompt="New here?" action="Create an account" onPress={() => router.push("/(auth)/sign-up")} />
+    </AuthScreen>
   );
 }

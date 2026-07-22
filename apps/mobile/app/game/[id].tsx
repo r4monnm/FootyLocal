@@ -1,10 +1,11 @@
 import { useCallback, useState } from "react";
 import { View, Text, Linking } from "react-native";
 import { useLocalSearchParams, useRouter, useFocusEffect, Link } from "expo-router";
+import MapView, { Marker } from "react-native-maps";
 import { computeTier, verificationSummary, googleDirectionsUrl, friendlyGameError, type SkillBand } from "@footylocal/core";
 import { supabase } from "../../lib/supabase";
 import { Screen, Title, Badge, Button, Muted, ErrorText } from "../../components/ui";
-import { colors, space, font } from "../../theme";
+import { colors, radius, space, font, absoluteFill } from "../../theme";
 
 type Detail = {
   id: string; title: string; description: string | null; skill_band: string; format: string;
@@ -94,8 +95,29 @@ export default function GameDetail() {
         <View style={{ gap: space(3) }}>
           <Text style={{ fontFamily: font.display, fontSize: 24, color: colors.ink }}>YOU'RE IN</Text>
           <Muted>{game.venue_address}</Muted>
+          {/* Reveal map: precise pitch. game_detail returns NULL coordinates
+              off-roster, so this whole block renders nothing until you join. */}
           {game.precise_lat != null && game.precise_lng != null && (
-            <Button label="Open in Maps" variant="outline" onPress={() => Linking.openURL(googleDirectionsUrl(game.precise_lat!, game.precise_lng!))} />
+            <>
+              <View style={{ height: 180, borderRadius: radius.card, overflow: "hidden", borderWidth: 1, borderColor: colors.border }}>
+                <MapView
+                  style={{ flex: 1 }}
+                  initialRegion={{ latitude: game.precise_lat, longitude: game.precise_lng, latitudeDelta: 0.008, longitudeDelta: 0.008 }}
+                  mapType="mutedStandard"
+                  userInterfaceStyle="dark"
+                  showsCompass={false}
+                  scrollEnabled={false}
+                  zoomEnabled={false}
+                  rotateEnabled={false}
+                  pitchEnabled={false}
+                  toolbarEnabled={false}
+                >
+                  <Marker coordinate={{ latitude: game.precise_lat, longitude: game.precise_lng }} pinColor="#CCFF00" title={game.venue_name} />
+                </MapView>
+                <View pointerEvents="none" style={{ ...absoluteFill, backgroundColor: colors.mapWash }} />
+              </View>
+              <Button label="Open in Maps" variant="outline" onPress={() => Linking.openURL(googleDirectionsUrl(game.precise_lat!, game.precise_lng!))} />
+            </>
           )}
           <View style={{ gap: space(1) }}>
             <Muted>Roster</Muted>
