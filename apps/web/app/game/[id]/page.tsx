@@ -8,6 +8,7 @@ import { joinAction, leaveAction } from "./actions";
 import { joinPaidAction } from "./pay-actions";
 import { blockAction } from "./trust-actions";
 import { cancelGameAction } from "./cancel-actions";
+import { markAttendanceAction } from "./attendance-actions";
 
 type RosterEntry = { player_id: string; name: string | null; role: string };
 type Detail = {
@@ -72,6 +73,7 @@ export default async function GamePage({
   const isCancelled = game.status === "cancelled";
   const isConfirmed = game.status === "confirmed";
   const isHost = user?.id === game.host_id;
+  const isPast = new Date(game.ends_at).getTime() < Date.now();
   const isPaid = game.price_cents > 0;
   const priceLabel = isPaid ? ` · $${(game.price_cents / 100).toFixed(0)}` : "";
 
@@ -164,6 +166,25 @@ export default async function GamePage({
               ))}
             </ul>
           </div>
+          {isHost && isPast && !isCancelled && (
+            <form className="flex flex-col gap-3 rounded-[var(--radius-card)] border border-gray p-4">
+              <h3 className="text-xs uppercase text-neutral-500">Attendance</h3>
+              <input type="hidden" name="gameId" value={game.id} />
+              {(game.roster ?? []).filter((r) => r.role !== "host").map((r) => (
+                <label key={r.player_id} className="flex items-center justify-between text-sm">
+                  <span>{r.name ?? "Player"}</span>
+                  <select name={`att:${r.player_id}`} defaultValue="skip" className="rounded-lg bg-gray px-2 py-1 text-xs">
+                    <option value="skip">—</option>
+                    <option value="attended">attended</option>
+                    <option value="no_show">no-show</option>
+                  </select>
+                </label>
+              ))}
+              <button formAction={markAttendanceAction} className="rounded-[var(--radius-pill)] bg-ink px-6 py-3 text-sm font-semibold uppercase text-accent">
+                Save attendance
+              </button>
+            </form>
+          )}
           {!isHost && (
             <form>
               <input type="hidden" name="gameId" value={game.id} />
