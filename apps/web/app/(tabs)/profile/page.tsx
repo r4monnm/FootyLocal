@@ -4,6 +4,7 @@ import { unblockAction } from "./actions";
 import { paymentsEnabled, retrieveChargesEnabled } from "@/lib/stripe";
 import { createServiceClient } from "@footylocal/db";
 import { startOnboardingAction } from "./payout-actions";
+import { computeTier, type SkillBand } from "@footylocal/core";
 
 export default async function Profile({
   searchParams,
@@ -18,6 +19,7 @@ export default async function Profile({
 
   let displayName: string | null = null;
   let phoneVerified = false;
+  let selfReported: SkillBand | null = null;
   let stats = {
     games_played: 0,
     karma: 0,
@@ -32,11 +34,12 @@ export default async function Profile({
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("display_name, phone_verified")
+      .select("display_name, phone_verified, self_reported_skill")
       .eq("id", user.id)
       .single();
     displayName = profile?.display_name ?? null;
     phoneVerified = profile?.phone_verified ?? false;
+    selfReported = (profile?.self_reported_skill ?? null) as SkillBand | null;
 
     const { data: s } = await supabase.rpc("profile_stats", { p_user_id: user.id });
     if (s?.[0]) stats = s[0];
@@ -59,6 +62,12 @@ export default async function Profile({
     }
   }
 
+  const tier = computeTier(
+    stats.avg_skill != null ? Number(stats.avg_skill) : null,
+    Number(stats.ratings_count),
+    selfReported,
+  );
+
   let chargesEnabled = false;
   if (user && paymentsEnabled()) {
     const svc = createServiceClient();
@@ -80,8 +89,10 @@ export default async function Profile({
   return (
     <section className="flex flex-col gap-6">
       <h1 className="display text-6xl">{displayName ?? "Profile"}</h1>
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap items-center gap-2">
         {phoneVerified ? <Badge tone="accent">phone verified</Badge> : <Badge>unverified</Badge>}
+        <Badge tone="accent">{tier.band}</Badge>
+        <span className="text-xs uppercase text-neutral-400">{tier.source === "peer" ? "peer-rated" : "self-rated"}</span>
       </div>
 
       <div className="grid grid-cols-3 gap-3">
