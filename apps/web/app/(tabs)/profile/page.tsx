@@ -18,7 +18,15 @@ export default async function Profile({
 
   let displayName: string | null = null;
   let phoneVerified = false;
-  let stats = { games_played: 0, karma: 0, avg_skill: null as number | null, ratings_count: 0 };
+  let stats = {
+    games_played: 0,
+    karma: 0,
+    avg_skill: null as number | null,
+    ratings_count: 0,
+    attended: 0,
+    no_shows: 0,
+    reliability: null as number | null,
+  };
   let blocked: { blocked_id: string; name: string | null }[] = [];
 
   if (user) {
@@ -81,6 +89,8 @@ export default async function Profile({
           { label: "Karma", value: Number(stats.karma) },
           { label: "Games", value: Number(stats.games_played) },
           { label: "Avg skill", value: stats.avg_skill != null ? Number(stats.avg_skill).toFixed(1) : "—" },
+          { label: "No-shows", value: Number(stats.no_shows) },
+          { label: "Reliability", value: stats.reliability != null ? `${Math.round(Number(stats.reliability) * 100)}%` : "—" },
         ].map((s) => (
           <div key={s.label} className="rounded-[var(--radius-card)] bg-gray p-4 text-center">
             <div className="display text-3xl">{s.value}</div>

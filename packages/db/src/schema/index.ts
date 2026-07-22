@@ -21,6 +21,7 @@ import {
   reportReason,
   reportStatus,
   tournamentFormat,
+  notificationType,
 } from "./enums";
 
 export * from "./enums";
@@ -186,4 +187,17 @@ export const trustedContacts = pgTable("trusted_contacts", {
   contactName: text("contact_name").notNull(),
   contactPhone: text("contact_phone").notNull(),
   ...timestamps,
+});
+
+// In-app notifications. Written only by SECURITY DEFINER RPCs (RLS in SQL:
+// own-row read/update, no user insert).
+export const notifications = pgTable("notifications", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  userId: uuid("user_id").notNull().references(() => profiles.id),
+  type: notificationType("type").notNull(),
+  gameId: uuid("game_id").references(() => games.id),
+  title: text("title").notNull(),
+  body: text("body").notNull(),
+  read: boolean("read").default(false).notNull(),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
 });

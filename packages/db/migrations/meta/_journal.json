@@ -15,6 +15,13 @@
       "when": 1784682415655,
       "tag": "0001_adorable_iron_patriot",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1784691699216,
+      "tag": "0002_salty_lilith",
+      "breakpoints": true
     }
   ]
 }
