@@ -4,14 +4,15 @@ import { unblockAction } from "./actions";
 import { paymentsEnabled, retrieveChargesEnabled } from "@/lib/stripe";
 import { createServiceClient } from "@footylocal/db";
 import { startOnboardingAction } from "./payout-actions";
-import { computeTier, type SkillBand } from "@footylocal/core";
+import { computeTier, verificationSummary, type SkillBand } from "@footylocal/core";
+import { startIdentityVerificationAction } from "./identity-actions";
 
 export default async function Profile({
   searchParams,
 }: {
-  searchParams: Promise<{ onboarding?: string }>;
+  searchParams: Promise<{ onboarding?: string; identity?: string; verify?: string; payouts?: string }>;
 }) {
-  const { onboarding } = await searchParams;
+  const { onboarding, identity, verify, payouts } = await searchParams;
   const supabase = await createClient();
   const {
     data: { user },
@@ -19,6 +20,9 @@ export default async function Profile({
 
   let displayName: string | null = null;
   let phoneVerified = false;
+  let photoVerified = false;
+  let idVerified = false;
+  let identityPending = false;
   let selfReported: SkillBand | null = null;
   let stats = {
     games_played: 0,
@@ -34,12 +38,14 @@ export default async function Profile({
   if (user) {
     const { data: profile } = await supabase
       .from("profiles")
-      .select("display_name, phone_verified, self_reported_skill")
+      .select("display_name, phone_verified, self_reported_skill, photo_verified, id_verified")
       .eq("id", user.id)
       .single();
     displayName = profile?.display_name ?? null;
     phoneVerified = profile?.phone_verified ?? false;
     selfReported = (profile?.self_reported_skill ?? null) as SkillBand | null;
+    photoVerified = profile?.photo_verified ?? false;
+    idVerified = profile?.id_verified ?? false;
 
     const { data: s } = await supabase.rpc("profile_stats", { p_user_id: user.id });
     if (s?.[0]) stats = s[0];
@@ -73,10 +79,11 @@ export default async function Profile({
     const svc = createServiceClient();
     const { data: pay } = await svc
       .from("profiles")
-      .select("stripe_account_id, stripe_charges_enabled")
+      .select("stripe_account_id, stripe_charges_enabled, stripe_identity_session_id")
       .eq("id", user.id)
       .single();
     chargesEnabled = pay?.stripe_charges_enabled ?? false;
+    identityPending = !idVerified && !!pay?.stripe_identity_session_id;
     // On return from onboarding, refresh status on demand.
     if (onboarding === "done" && pay?.stripe_account_id && !chargesEnabled) {
       chargesEnabled = await retrieveChargesEnabled(pay.stripe_account_id);
@@ -86,14 +93,38 @@ export default async function Profile({
     }
   }
 
+  const verif = verificationSummary({
+    phone_verified: phoneVerified,
+    photo_verified: photoVerified,
+    id_verified: idVerified,
+  });
+  const VERIF_LABEL: Record<"phone" | "photo" | "id", string> = {
+    phone: "Phone ✓",
+    photo: "Photo ✓",
+    id: "ID ✓",
+  };
+
   return (
     <section className="flex flex-col gap-6">
       <h1 className="display text-6xl">{displayName ?? "Profile"}</h1>
       <div className="flex flex-wrap items-center gap-2">
-        {phoneVerified ? <Badge tone="accent">phone verified</Badge> : <Badge>unverified</Badge>}
+        {verif.badges.length > 0 ? (
+          verif.badges.map((b) => <Badge key={b} tone="accent">{VERIF_LABEL[b]}</Badge>)
+        ) : (
+          <Badge>unverified</Badge>
+        )}
         <Badge tone="accent">{tier.band}</Badge>
         <span className="text-xs uppercase text-neutral-400">{tier.source === "peer" ? "peer-rated" : "self-rated"}</span>
       </div>
+      {verify === "id" && (
+        <p className="text-sm text-[var(--color-error)]">Verify your ID before hosting a paid game.</p>
+      )}
+      {payouts === "required" && (
+        <p className="text-sm text-[var(--color-error)]">Set up payouts before hosting a paid game.</p>
+      )}
+      {identity === "done" && !idVerified && (
+        <p className="text-sm text-neutral-500">Thanks — your verification is being reviewed. Your badge appears once Stripe confirms it.</p>
+      )}
 
       <div className="grid grid-cols-3 gap-3">
         {[
@@ -109,6 +140,22 @@ export default async function Profile({
           </div>
         ))}
       </div>
+
+      {paymentsEnabled() && !idVerified && (
+        <div>
+          <h2 className="text-xs uppercase text-neutral-500">Identity</h2>
+          {identityPending ? (
+            <p className="mt-2 text-sm text-neutral-500">Verification pending — we'll update your badge when it's confirmed.</p>
+          ) : (
+            <form className="mt-2">
+              <button formAction={startIdentityVerificationAction}
+                className="rounded-[var(--radius-pill)] bg-ink px-6 py-3 text-sm font-semibold uppercase text-accent">
+                Verify your identity
+              </button>
+            </form>
+          )}
+        </div>
+      )}
 
       {paymentsEnabled() && (
         <div>

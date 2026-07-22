@@ -51,6 +51,29 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
       }
       // 'waitlisted' / 'dup' → keep the hold, nothing to settle.
     }
+  } else if (event.type === "identity.verification_session.verified") {
+    const session = event.data.object;
+    const userId = session.metadata?.user_id;
+    if (userId) {
+      const { error } = await supabase.rpc("mark_identity_verified", { p_user_id: userId });
+      // Transient failure → 500 so Stripe retries (the flags flip is idempotent).
+      if (error) {
+        return NextResponse.json({ error: "verify failed" }, { status: 500 });
+      }
+    }
+  } else if (
+    event.type === "identity.verification_session.requires_input" ||
+    event.type === "identity.verification_session.canceled"
+  ) {
+    const session = event.data.object;
+    const userId = session.metadata?.user_id;
+    if (userId) {
+      // Drop the pending session so Profile shows the retry button again.
+      await supabase
+        .from("profiles")
+        .update({ stripe_identity_session_id: null })
+        .eq("id", userId);
+    }
   }
 
   return NextResponse.json({ received: true });

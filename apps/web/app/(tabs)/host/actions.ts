@@ -41,9 +41,12 @@ export async function hostGameAction(formData: FormData): Promise<void> {
   if (parsed.data.priceCents > 0) {
     const { data: pay } = await supabase
       .from("profiles")
-      .select("stripe_charges_enabled")
+      .select("stripe_charges_enabled, id_verified")
       .eq("id", user.id)
       .single();
+    if (!pay?.id_verified) {
+      redirect(`/profile?verify=id`);
+    }
     if (!pay?.stripe_charges_enabled) {
       redirect(`/profile?payouts=required`);
     }

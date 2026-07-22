@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { signUpSchema, otpSchema, friendlyAuthError } from "@footylocal/core";
+import { createServiceClient } from "@footylocal/db";
 import { createClient } from "@/lib/supabase/server";
 
 /** Email + password sign-in. */
@@ -56,7 +57,11 @@ export async function verifyPhoneAction(formData: FormData): Promise<void> {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) redirect("/sign-in");
-  const { error } = await supabase
+  // phone_verified / verification_level are locked down to the service role
+  // (see 0017_profiles_update_lockdown.sql) so authenticated clients cannot
+  // self-forge verification flags. This update must run via the service client.
+  const svc = createServiceClient();
+  const { error } = await svc
     .from("profiles")
     .update({ phone_verified: true, verification_level: "phone" })
     .eq("id", user.id);
