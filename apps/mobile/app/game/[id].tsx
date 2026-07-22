@@ -21,6 +21,7 @@ export default function GameDetail() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const [game, setGame] = useState<Detail | null>(null);
+  const [viewerId, setViewerId] = useState<string | null>(null);
   const [phoneVerified, setPhoneVerified] = useState(false);
   const [hostBand, setHostBand] = useState<string>("");
   const [hostBadges, setHostBadges] = useState<("phone" | "photo" | "id")[]>([]);
@@ -33,6 +34,7 @@ export default function GameDetail() {
     setGame(g);
     if (!g) return;
     const { data: { user } } = await supabase.auth.getUser();
+    setViewerId(user?.id ?? null);
     if (user) {
       const { data: me } = await supabase.from("profiles").select("phone_verified").eq("id", user.id).single();
       setPhoneVerified(me?.phone_verified ?? false);
@@ -68,6 +70,7 @@ export default function GameDetail() {
   const isPaid = game.price_cents > 0;
   const isCancelled = game.status === "cancelled";
   const isWaitlisted = game.viewer_status === "waitlisted";
+  const isHost = viewerId != null && viewerId === game.host_id;
 
   return (
     <Screen>
@@ -100,7 +103,9 @@ export default function GameDetail() {
               <Text key={r.player_id} style={{ color: colors.ink, fontFamily: font.body }}>{r.name ?? "Player"}{r.role === "host" ? " · host" : ""}</Text>
             ))}
           </View>
-          {game.host_id /* non-host can leave */ && <Button label={busy ? "…" : "Leave game"} variant="outline" onPress={leave} disabled={busy} />}
+          {isHost
+            ? <Muted>You're hosting this game.</Muted>
+            : <Button label={busy ? "…" : "Leave game"} variant="outline" onPress={leave} disabled={busy} />}
         </View>
       ) : (
         <View style={{ gap: space(3) }}>
