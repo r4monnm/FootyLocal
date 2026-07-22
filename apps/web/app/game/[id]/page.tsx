@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { computeTier, meetsBand, googleDirectionsUrl, type SkillBand, type GameBand } from "@footylocal/core";
+import { computeTier, meetsBand, verificationSummary, googleDirectionsUrl, type SkillBand, type GameBand } from "@footylocal/core";
 import { Badge, Button } from "@footylocal/ui";
 import { createClient } from "@/lib/supabase/server";
 import { paymentsEnabled } from "@/lib/stripe";
@@ -87,6 +87,19 @@ export default async function GamePage({
   const isConfirmed = game.status === "confirmed";
 
   const hostTier = await tierFor(game.host_id);
+  const { data: hostVerif } = await supabase
+    .from("profiles")
+    .select("phone_verified, photo_verified, id_verified")
+    .eq("id", game.host_id)
+    .single();
+  const hostBadges = verificationSummary({
+    phone_verified: hostVerif?.phone_verified ?? false,
+    photo_verified: hostVerif?.photo_verified ?? false,
+    id_verified: hostVerif?.id_verified ?? false,
+  }).badges;
+  const HOST_VERIF_LABEL: Record<"phone" | "photo" | "id", string> = {
+    phone: "Phone ✓", photo: "Photo ✓", id: "ID ✓",
+  };
   // Only fetch the viewer's tier when the below-level warning could actually
   // render — avoids 2 wasted DB round trips on already-joined / cancelled /
   // waitlisted / unverified views (the common paths).
@@ -122,7 +135,10 @@ export default async function GamePage({
         <span>{game.venue_address}</span>
         <span>{game.surface_type} · {game.format.replace(/_/g, " ")}</span>
         <span>{new Date(game.starts_at).toLocaleString()} – {new Date(game.ends_at).toLocaleTimeString()}</span>
-        <span>host: {game.host_name ?? "—"} · <span className="uppercase">{hostTier.band}</span></span>
+        <span className="flex flex-wrap items-center gap-2">
+          host: {game.host_name ?? "—"} · <span className="uppercase">{hostTier.band}</span>
+          {hostBadges.map((b) => <Badge key={b} tone="accent">{HOST_VERIF_LABEL[b]}</Badge>)}
+        </span>
         <span>{spots} of {game.max_players} spots left</span>
         {game.is_women_only && <span>women-only</span>}
       </div>
