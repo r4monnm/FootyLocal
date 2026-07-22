@@ -49,6 +49,9 @@ $$;
 grant execute on function submit_rating(uuid, uuid, jsonb, boolean, boolean) to authenticated;
 
 -- Computed public profile stats (no stored counter; preserves rater anonymity).
+-- drop-first so the apply-sql replay stays re-runnable after 0015 changes
+-- profile_stats' return shape (adds attended/no_shows/reliability).
+drop function if exists profile_stats(uuid);
 create or replace function profile_stats(p_user_id uuid)
 returns table (
   games_played bigint,

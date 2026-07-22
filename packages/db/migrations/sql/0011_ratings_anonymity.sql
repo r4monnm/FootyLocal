@@ -40,6 +40,8 @@ $$;
 grant execute on function submit_rating(uuid, uuid, jsonb, boolean, boolean) to authenticated;
 
 -- Harden profile_stats avg against any malformed/poisoned skill values.
+-- drop-first so the replay stays re-runnable after 0015 changes profile_stats' shape.
+drop function if exists profile_stats(uuid);
 create or replace function profile_stats(p_user_id uuid)
 returns table (games_played bigint, karma bigint, avg_skill numeric, ratings_count bigint)
 language sql security definer set search_path = public as $$

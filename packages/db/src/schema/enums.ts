@@ -66,3 +66,8 @@ export const tournamentFormat = pgEnum("tournament_format", [
   "double_elim",
   "group_then_knockout",
 ]);
+export const notificationType = pgEnum("notification_type", [
+  "game_confirmed",
+  "spot_opened",
+  "game_cancelled",
+]);
