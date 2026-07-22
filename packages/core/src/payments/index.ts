@@ -17,3 +17,12 @@ export function platformFeeCents(priceCents: number): number {
 export function isValidPriceCents(priceCents: number): boolean {
   return priceCents === 0 || priceCents >= PRICE_FLOOR_CENTS;
 }
+
+/** Hours before start after which leaving a captured paid game forfeits (no refund). */
+export const REFUND_DEADLINE_HOURS = 24;
+
+/** Whether a leaver gets a refund: only if leaving strictly more than the
+ * deadline before the game starts. */
+export function isRefundableLeave(startsAt: Date, now: Date): boolean {
+  return startsAt.getTime() - now.getTime() > REFUND_DEADLINE_HOURS * 3600_000;
+}

@@ -77,3 +77,30 @@ export async function createPaidJoinCheckout(opts: {
 export async function cancelPaymentIntent(id: string): Promise<void> {
   await getStripe().paymentIntents.cancel(id);
 }
+
+export async function capturePaymentIntent(id: string): Promise<void> {
+  try {
+    await getStripe().paymentIntents.capture(id);
+  } catch (e) {
+    // Concurrent settle triggers (two paid-join webhooks) can both try to
+    // capture the same hold. Treat an already-captured PI as success so the
+    // capture path is idempotent and doesn't strand other holds via a 500.
+    const code = (e as { code?: string; message?: string });
+    const msg = (code.message ?? "").toLowerCase();
+    if (code.code === "payment_intent_unexpected_state" || msg.includes("already been captured")) {
+      return;
+    }
+    throw e;
+  }
+}
+
+export async function refundPaymentIntent(id: string): Promise<void> {
+  // Destination charge: reverse_transfer claws back the host's transferred funds,
+  // and refund_application_fee returns the platform fee — so a full refund/cancel
+  // doesn't leave the host paid or the platform out of pocket.
+  await getStripe().refunds.create({
+    payment_intent: id,
+    reverse_transfer: true,
+    refund_application_fee: true,
+  });
+}

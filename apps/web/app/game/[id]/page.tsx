@@ -7,6 +7,7 @@ import { GameLocationMap } from "./GameLocationMap";
 import { joinAction, leaveAction } from "./actions";
 import { joinPaidAction } from "./pay-actions";
 import { blockAction } from "./trust-actions";
+import { cancelGameAction } from "./cancel-actions";
 
 type RosterEntry = { player_id: string; name: string | null; role: string };
 type Detail = {
@@ -19,6 +20,7 @@ type Detail = {
   ends_at: string;
   is_women_only: boolean;
   max_players: number;
+  min_players_to_confirm: number;
   status: string;
   price_cents: number;
   host_id: string;
@@ -28,6 +30,7 @@ type Detail = {
   surface_type: string;
   joined_count: number;
   viewer_joined: boolean;
+  viewer_status: string | null;
   precise_lat: number | null;
   precise_lng: number | null;
   roster: RosterEntry[] | null;
@@ -65,6 +68,9 @@ export default async function GamePage({
   }
 
   const spots = game.max_players - Number(game.joined_count);
+  const isWaitlisted = game.viewer_status === "waitlisted";
+  const isCancelled = game.status === "cancelled";
+  const isConfirmed = game.status === "confirmed";
   const isHost = user?.id === game.host_id;
   const isPaid = game.price_cents > 0;
   const priceLabel = isPaid ? ` · $${(game.price_cents / 100).toFixed(0)}` : "";
@@ -91,6 +97,22 @@ export default async function GamePage({
         <span>{spots} of {game.max_players} spots left</span>
         {game.is_women_only && <span>women-only</span>}
       </div>
+
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        {isConfirmed && <Badge tone="accent">confirmed</Badge>}
+        {isCancelled && <span className="text-[var(--color-error)]">This game was cancelled.</span>}
+        {game.status === "open" && (
+          <span className="text-neutral-600">{Number(game.joined_count)} of {game.min_players_to_confirm} to confirm</span>
+        )}
+      </div>
+      {isHost && !isCancelled && (
+        <form>
+          <input type="hidden" name="gameId" value={game.id} />
+          <button formAction={cancelGameAction} className="text-xs uppercase text-[var(--color-error)] underline">
+            Cancel game
+          </button>
+        </form>
+      )}
 
       {!isHost && (
         <div className="flex gap-3 text-xs">
@@ -156,10 +178,18 @@ export default async function GamePage({
           <p className="text-xs text-neutral-500">
             Approximate area only. The exact pitch and directions appear once you join.
           </p>
-          {game.status !== "open" ? (
-            <p className="text-sm text-neutral-600">This game isn't open for joining.</p>
-          ) : spots <= 0 ? (
-            <p className="text-sm text-neutral-600">This game is full.</p>
+          {isCancelled ? (
+            <p className="text-sm text-neutral-600">This game was cancelled.</p>
+          ) : isWaitlisted ? (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-neutral-600">You're on the waitlist. You'll take a spot if one opens.</p>
+              <form>
+                <input type="hidden" name="gameId" value={game.id} />
+                <button formAction={leaveAction} className="rounded-[var(--radius-pill)] border border-ink px-6 py-3 text-sm font-semibold uppercase">
+                  Leave waitlist
+                </button>
+              </form>
+            </div>
           ) : !phoneVerified ? (
             <Link href="/verify-phone" className="text-sm font-semibold uppercase text-ink underline">
               Verify your phone to join →
@@ -168,11 +198,15 @@ export default async function GamePage({
             <form>
               <input type="hidden" name="gameId" value={game.id} />
               {isPaid && paymentsEnabled() ? (
-                <Button variant="accent" formAction={joinPaidAction}>Join{priceLabel}</Button>
+                <Button variant="accent" formAction={joinPaidAction}>
+                  {spots > 0 ? `Join${priceLabel}` : `Join waitlist${priceLabel}`}
+                </Button>
               ) : isPaid ? (
                 <Button variant="accent" disabled>Paid join unavailable</Button>
               ) : (
-                <Button variant="accent" formAction={joinAction}>Join game</Button>
+                <Button variant="accent" formAction={joinAction}>
+                  {spots > 0 ? "Join game" : "Join waitlist"}
+                </Button>
               )}
             </form>
           )}

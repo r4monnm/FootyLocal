@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest";
 import { platformFeeCents, isValidPriceCents, PRICE_FLOOR_CENTS } from "./index.js";
+import { isRefundableLeave, REFUND_DEADLINE_HOURS } from "./index.js";
 
 describe("platformFeeCents", () => {
   it("is 10% of the price", () => {
@@ -23,5 +24,21 @@ describe("isValidPriceCents", () => {
   it("allows the floor and above", () => {
     expect(isValidPriceCents(PRICE_FLOOR_CENTS)).toBe(true);
     expect(isValidPriceCents(2000)).toBe(true);
+  });
+});
+
+describe("isRefundableLeave", () => {
+  const start = new Date("2030-01-10T18:00:00.000Z");
+  it("refunds when leaving more than 24h before start", () => {
+    const now = new Date(start.getTime() - 25 * 3600_000);
+    expect(isRefundableLeave(start, now)).toBe(true);
+  });
+  it("does not refund within 24h of start", () => {
+    const now = new Date(start.getTime() - 23 * 3600_000);
+    expect(isRefundableLeave(start, now)).toBe(false);
+  });
+  it("does not refund exactly at the 24h boundary", () => {
+    const now = new Date(start.getTime() - REFUND_DEADLINE_HOURS * 3600_000);
+    expect(isRefundableLeave(start, now)).toBe(false);
   });
 });
