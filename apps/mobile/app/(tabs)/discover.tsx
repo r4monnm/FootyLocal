@@ -7,6 +7,8 @@ import { toGamesNearFilters, roundPublicDistance, GAME_BANDS, type DiscoverFilte
 import { supabase } from "../../lib/supabase";
 import { Title, Badge, Muted } from "../../components/ui";
 import { MapSkin } from "../../components/map-skin";
+import { mapProviderProps, needsSkin } from "../../components/map-provider";
+import { GamePin } from "../../components/game-pin";
 import { colors, radius, space, font } from "../../theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -91,11 +93,10 @@ export default function Discover() {
             ref={mapRef}
             style={{ flex: 1 }}
             initialRegion={region}
-            // Recolored to the app palette by <MapSkin/> below — see that file
-            // for why a truly designed basemap needs a development build.
+            // Google + NEON_MAP_STYLE in a dev build; Apple + <MapSkin/> in
+            // Expo Go. See components/map-provider.ts.
+            {...mapProviderProps}
             mapType="standard"
-            // Not honored in Expo Go (native build-time setting); kept so a
-            // dev/production build renders the dark basemap.
             userInterfaceStyle="dark"
             showsUserLocation
             showsMyLocationButton={false}
@@ -107,23 +108,24 @@ export default function Discover() {
               <Marker
                 key={g.id}
                 coordinate={{ latitude: g.public_lat, longitude: g.public_lng }}
-                // The MapSkin `color` blend keeps only luminance, so pins must
-                // be bright to survive it. Selected goes to white = brightest.
-                pinColor={g.id === selectedId ? "#FFFFFF" : "#CCFF00"}
                 title={g.title}
                 description={`${roundPublicDistance(g.distance_meters)} · approximate area`}
                 onPress={() => select(g, "pin")}
-              />
+                tracksViewChanges={false}
+              >
+                {/* A custom view rather than pinColor: Google Maps quantizes
+                    pinColor to a hue and renders our lime as olive. */}
+                <GamePin selected={g.id === selectedId} />
+              </Marker>
             ))}
           </MapView>
         ) : null}
-        {region ? (
-          <MapSkin />
-        ) : (
+        {region && needsSkin ? <MapSkin /> : null}
+        {!region ? (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.gray }}>
             <Muted>Locating…</Muted>
           </View>
-        )}
+        ) : null}
       </View>
       <Text style={{ color: colors.muted, fontFamily: font.body, fontSize: 11, paddingHorizontal: space(6), paddingTop: space(2) }}>
         Pins show the approximate area. The exact pitch appears once you join.

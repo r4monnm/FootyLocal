@@ -6,6 +6,8 @@ import { computeTier, verificationSummary, googleDirectionsUrl, friendlyGameErro
 import { supabase } from "../../lib/supabase";
 import { Screen, Title, Badge, Button, Muted, ErrorText } from "../../components/ui";
 import { MapSkin } from "../../components/map-skin";
+import { mapProviderProps, needsSkin } from "../../components/map-provider";
+import { GamePin } from "../../components/game-pin";
 import { colors, radius, space, font } from "../../theme";
 
 type Detail = {
@@ -104,6 +106,7 @@ export default function GameDetail() {
                 <MapView
                   style={{ flex: 1 }}
                   initialRegion={{ latitude: game.precise_lat, longitude: game.precise_lng, latitudeDelta: 0.008, longitudeDelta: 0.008 }}
+                  {...mapProviderProps}
                   mapType="standard"
                   userInterfaceStyle="dark"
                   showsCompass={false}
@@ -113,9 +116,11 @@ export default function GameDetail() {
                   pitchEnabled={false}
                   toolbarEnabled={false}
                 >
-                  <Marker coordinate={{ latitude: game.precise_lat, longitude: game.precise_lng }} pinColor="#CCFF00" title={game.venue_name} />
+                  <Marker coordinate={{ latitude: game.precise_lat, longitude: game.precise_lng }} title={game.venue_name} tracksViewChanges={false}>
+                    <GamePin selected />
+                  </Marker>
                 </MapView>
-                <MapSkin />
+                {needsSkin ? <MapSkin /> : null}
               </View>
               <Button label="Open in Maps" variant="outline" onPress={() => Linking.openURL(googleDirectionsUrl(game.precise_lat!, game.precise_lng!))} />
             </>
