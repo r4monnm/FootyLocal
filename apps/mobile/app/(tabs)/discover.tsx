@@ -91,11 +91,11 @@ export default function Discover() {
             ref={mapRef}
             style={{ flex: 1 }}
             initialRegion={region}
-            // Apple Maps' desaturated basemap + dark mode is as close to the
-            // app's palette as we can get inside Expo Go. A fully brand-colored
-            // basemap needs PROVIDER_GOOGLE + customMapStyle, which on iOS
-            // requires a development build.
+            // Recolored to the app palette by <MapSkin/> below — see that file
+            // for why a truly designed basemap needs a development build.
             mapType="standard"
+            // Not honored in Expo Go (native build-time setting); kept so a
+            // dev/production build renders the dark basemap.
             userInterfaceStyle="dark"
             showsUserLocation
             showsMyLocationButton={false}
@@ -117,8 +117,6 @@ export default function Discover() {
             ))}
           </MapView>
         ) : null}
-        {/* Green wash that pulls the basemap toward the app palette. Must not
-            eat touches destined for the map. */}
         {region ? (
           <MapSkin />
         ) : (

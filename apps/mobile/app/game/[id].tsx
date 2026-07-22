@@ -104,7 +104,7 @@ export default function GameDetail() {
                 <MapView
                   style={{ flex: 1 }}
                   initialRegion={{ latitude: game.precise_lat, longitude: game.precise_lng, latitudeDelta: 0.008, longitudeDelta: 0.008 }}
-                  mapType="mutedStandard"
+                  mapType="standard"
                   userInterfaceStyle="dark"
                   showsCompass={false}
                   scrollEnabled={false}

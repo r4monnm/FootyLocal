@@ -20,10 +20,10 @@ export const colors = {
   glow: "rgba(140, 198, 63, 0.55)",
   /** Neon green recolor layer over the map basemap (blended, not painted). */
   mapTint: "#4BFF7A",
-  /** Darkening pass. Sinks the land toward black while high-luminance roads
-   *  and labels stay neon — "dark map, neon lines". Tuned by eye: past ~0.5
-   *  the labels stop being readable, below ~0.25 the whole map goes bright. */
-  mapShade: "rgba(4, 12, 5, 0.38)",
+  /** Crushes the light basemap's land toward black. */
+  mapShade: "rgba(0, 0, 0, 0.86)",
+  /** Lifts the surviving roads and labels back into neon. */
+  mapGlow: "#3E8F4E",
   error: "#FF6B6E",
   success: "#4ADE80",
 };
