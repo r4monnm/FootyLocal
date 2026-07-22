@@ -6,6 +6,7 @@
     "@expo-google-fonts/anton": "^0.4.2",
     "@expo-google-fonts/inter": "^0.4.2",
     "@expo/metro-runtime": "~57.0.6",
+    "@expo/vector-icons": "^15.1.1",
     "@footylocal/core": "workspace:*",
     "@react-native-async-storage/async-storage": "2.2.0",
     "@supabase/supabase-js": "^2.110.7",

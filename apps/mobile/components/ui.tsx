@@ -2,6 +2,7 @@ import { ReactNode, useState } from "react";
 import { View, Text, Pressable, TextInput, ScrollView, TextInputProps } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
+import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, space, font } from "../theme";
 
 export function Screen({ children }: { children: ReactNode }) {
@@ -109,7 +110,7 @@ export function PillField({ secureToggle, ...props }: TextInputProps & { secureT
       />
       {secureToggle && (
         <Pressable onPress={() => setHidden((h) => !h)} hitSlop={12} style={{ position: "absolute", right: space(5) }}>
-          <Text style={{ color: colors.muted, fontSize: 16 }}>{hidden ? "👁" : "🙈"}</Text>
+          <Ionicons name={hidden ? "eye-outline" : "eye-off-outline"} size={20} color={colors.muted} />
         </Pressable>
       )}
     </View>
