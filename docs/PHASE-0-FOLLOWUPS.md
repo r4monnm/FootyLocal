@@ -208,3 +208,18 @@ Final review: ready to merge (no Critical/security defect). Items below are fast
 ## Deferred to later (by design)
 - Time-based reminders ("game tomorrow") + email/push delivery (needs a channel seam +
   scheduler); per-game chat in Messages (Phase 4 Realtime).
+
+---
+
+# Phase 3a — Deferred Follow-ups
+
+Final review: ready to merge (no Critical). The efficiency fix (gate viewerTier) is done (951789e).
+
+## Polish
+- **Host tier renders as a bare `<span className="uppercase">`** on game detail, but the
+  Profile tier uses the `Badge` primitive — same concept, inconsistent look. Use `Badge`.
+
+## Deferred to later (by design)
+- Roster-member tiers (needs game_detail roster tier fields or per-player fetch).
+- Hidden Glicko-2 numeric rating + placement games + decay (Phase 4 competitive/tournaments).
+- Hard join-gating / per-game enforce toggle (we chose warn-but-allow).
