@@ -1,7 +1,9 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-const PUBLIC_PATHS = ["/sign-in", "/verify-phone", "/auth"];
+// "/api/stripe" is public: Stripe webhooks carry no user session, and the route
+// authenticates via Stripe signature verification, not the auth cookie.
+const PUBLIC_PATHS = ["/sign-in", "/verify-phone", "/auth", "/api/stripe"];
 
 export async function updateSession(request: NextRequest) {
   let response = NextResponse.next({ request });
