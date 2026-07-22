@@ -114,6 +114,13 @@ describe("gameCreateSchema", () => {
     const r = gameCreateSchema.safeParse({ ...base, venueId: "not-a-uuid" });
     expect(r.success).toBe(false);
   });
+  it("rejects a paid price below the $5 floor", () => {
+    expect(gameCreateSchema.safeParse({ ...base, priceCents: 300 }).success).toBe(false);
+  });
+  it("allows free and >=$5", () => {
+    expect(gameCreateSchema.safeParse({ ...base, priceCents: 0 }).success).toBe(true);
+    expect(gameCreateSchema.safeParse({ ...base, priceCents: 500 }).success).toBe(true);
+  });
 });
 
 describe("friendlyGameError", () => {

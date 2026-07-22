@@ -2,6 +2,7 @@ import { z } from "zod";
 import { SKILL_BANDS } from "../skill/index.js";
 import { GAME_FORMATS } from "../game/index.js";
 import { GAME_BANDS } from "../skill/index.js";
+import { isValidPriceCents } from "../payments/index.js";
 
 /** Signup requires an explicit 18+ attestation (literal true). */
 export const signUpSchema = z.object({
@@ -80,6 +81,10 @@ export const gameCreateSchema = z
   .refine((d) => d.minPlayersToConfirm <= d.maxPlayers, {
     message: "Min players to confirm can't exceed max players.",
     path: ["minPlayersToConfirm"],
+  })
+  .refine((d) => isValidPriceCents(d.priceCents), {
+    message: "Paid games must be at least $5 (or free).",
+    path: ["priceCents"],
   });
 export type GameCreateInput = z.infer<typeof gameCreateSchema>;
 
