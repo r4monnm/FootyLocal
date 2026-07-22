@@ -32,10 +32,21 @@ export async function hostGameAction(formData: FormData): Promise<void> {
     maxPlayers: Number(formData.get("maxPlayers")),
     minPlayersToConfirm: Number(formData.get("minPlayersToConfirm")),
     isWomenOnly: formData.get("isWomenOnly") === "on",
-    priceCents: 0,
+    priceCents: Math.round(Number(formData.get("priceUsd") ?? 0) * 100),
   });
   if (!parsed.success) {
     redirect(`/host?error=${encodeURIComponent(parsed.error.issues[0]!.message)}`);
+  }
+
+  if (parsed.data.priceCents > 0) {
+    const { data: pay } = await supabase
+      .from("profiles")
+      .select("stripe_charges_enabled")
+      .eq("id", user.id)
+      .single();
+    if (!pay?.stripe_charges_enabled) {
+      redirect(`/profile?payouts=required`);
+    }
   }
 
   try {

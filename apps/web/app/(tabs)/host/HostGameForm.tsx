@@ -37,6 +37,8 @@ export function HostGameForm({ venues }: { venues: Venue[] }) {
       <label className="flex items-center gap-2 text-sm">
         <input name="isWomenOnly" type="checkbox" /> Women-only game
       </label>
+      <label className="text-xs uppercase text-neutral-500">Price (USD, 0 for free; $5 min if paid)</label>
+      <input name="priceUsd" type="number" min={0} step="1" defaultValue={0} className={FIELD} />
       <Button variant="accent" formAction={hostGameAction}>Host game</Button>
     </form>
   );
