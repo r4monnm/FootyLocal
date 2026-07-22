@@ -180,3 +180,31 @@ before/at the point Stripe keys go live.
 ## Deferred to 2c (by design)
 - Automatic expiry/void of unconfirmed games at start time (needs a scheduler).
 - No-show tracking; notifications (confirmed / spot opened / game tomorrow).
+
+---
+
+# Phase 2c — Deferred Follow-ups
+
+Final review: ready to merge (no Critical/security defect). Items below are fast-follows.
+
+## Correctness / hardening (bundle into a future 0016)
+- **Attendance is irreversible.** `mark_attendance` only flips `joined` rows and marked
+  players drop out of `game_detail.roster`, so a mistaken `no_show` (feeds reliability)
+  can't be undone. Add an unmark/correction path (re-flip attended/no_show → joined) and
+  include already-marked players in the host's attendance list. Matters once `profile_stats`
+  (anon-granted, public-ready) shows reliability to others.
+- **`mark_attendance` host self-guard.** No server-side `role <> 'host'` — the UI filters
+  the host out, but the RPC would flip the host's own row if passed. Add the predicate.
+- **Cancel notification copy** says "Any payment is refunded" to all cancelled players,
+  including free games / unpaid waitlisters. Use neutral wording ("If you paid, it's refunded").
+
+## Deploy / infra
+- **notifications RLS lives only in `sql/0015`** (Drizzle `0002` creates the table with RLS
+  disabled). An env that runs `migrate` but skips `pnpm sql` would leave notifications
+  world-readable to any authenticated client. Add a CI/deploy assertion that RLS is enabled.
+- **Server-TZ timestamps** in the Messages list (`toLocaleString()` on the server). Use a
+  client relative-time formatter.
+
+## Deferred to later (by design)
+- Time-based reminders ("game tomorrow") + email/push delivery (needs a channel seam +
+  scheduler); per-game chat in Messages (Phase 4 Realtime).
