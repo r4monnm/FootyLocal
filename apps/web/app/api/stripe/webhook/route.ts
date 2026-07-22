@@ -20,10 +20,13 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   if (event.type === "account.updated") {
     const account = event.data.object;
-    await supabase
+    const { error } = await supabase
       .from("profiles")
       .update({ stripe_charges_enabled: account.charges_enabled ?? false })
       .eq("stripe_account_id", account.id);
+    if (error) {
+      return NextResponse.json({ error: "update failed" }, { status: 500 });
+    }
   } else if (event.type === "checkout.session.completed") {
     const session = event.data.object;
     const gameId = session.metadata?.game_id;
@@ -31,13 +34,19 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
     const paymentIntent =
       typeof session.payment_intent === "string" ? session.payment_intent : null;
     if (gameId && playerId && paymentIntent) {
-      const { data } = await supabase.rpc("join_paid", {
+      const { data, error } = await supabase.rpc("join_paid", {
         p_game_id: gameId,
         p_player_id: playerId,
         p_payment_intent_id: paymentIntent,
       });
-      // Couldn't add them (full/closed/dup) → release the authorization hold.
-      if (data !== "joined") {
+      // A transient failure must not cancel the hold — return 500 so Stripe retries.
+      if (error) {
+        return NextResponse.json({ error: "join failed" }, { status: 500 });
+      }
+      // Only a genuine non-join (full/closed) forfeits the hold. "joined" and
+      // "dup" (an at-least-once redelivery of an already-joined player) must
+      // keep it intact.
+      if (data === "full" || data === "closed") {
         await cancelPaymentIntent(paymentIntent);
       }
     }
