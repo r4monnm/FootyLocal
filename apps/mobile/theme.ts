@@ -7,8 +7,10 @@ export const colors = {
   gray: "#1A1F17",
   /** Lime. Same family as the reference's accent. */
   accent: "#CCFF00",
-  /** Deeper lime — the far stop of the CTA gradient. */
-  accentDeep: "#8CC63F",
+  /** Bright stop of the CTA gradient (hot, near-white lime). */
+  accentBright: "#E8FF6B",
+  /** Deep stop of the CTA gradient — the drop into saturated green. */
+  accentDeep: "#5FBF00",
   /** Text/icons that sit ON an accent fill. */
   onAccent: "#0B0F0A",
   muted: "#9AA694",
@@ -16,8 +18,12 @@ export const colors = {
   border: "#2A3324",
   /** The green bloom behind auth headers. */
   glow: "rgba(140, 198, 63, 0.55)",
-  /** Translucent wash over the map basemap so it reads as part of the app. */
-  mapWash: "rgba(11, 31, 10, 0.42)",
+  /** Neon green recolor layer over the map basemap (blended, not painted). */
+  mapTint: "#4BFF7A",
+  /** Darkening pass. Sinks the land toward black while high-luminance roads
+   *  and labels stay neon — "dark map, neon lines". Tuned by eye: past ~0.5
+   *  the labels stop being readable, below ~0.25 the whole map goes bright. */
+  mapShade: "rgba(4, 12, 5, 0.38)",
   error: "#FF6B6E",
   success: "#4ADE80",
 };

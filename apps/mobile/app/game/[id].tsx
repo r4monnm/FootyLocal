@@ -5,7 +5,8 @@ import MapView, { Marker } from "react-native-maps";
 import { computeTier, verificationSummary, googleDirectionsUrl, friendlyGameError, type SkillBand } from "@footylocal/core";
 import { supabase } from "../../lib/supabase";
 import { Screen, Title, Badge, Button, Muted, ErrorText } from "../../components/ui";
-import { colors, radius, space, font, absoluteFill } from "../../theme";
+import { MapSkin } from "../../components/map-skin";
+import { colors, radius, space, font } from "../../theme";
 
 type Detail = {
   id: string; title: string; description: string | null; skill_band: string; format: string;
@@ -114,7 +115,7 @@ export default function GameDetail() {
                 >
                   <Marker coordinate={{ latitude: game.precise_lat, longitude: game.precise_lng }} pinColor="#CCFF00" title={game.venue_name} />
                 </MapView>
-                <View pointerEvents="none" style={{ ...absoluteFill, backgroundColor: colors.mapWash }} />
+                <MapSkin />
               </View>
               <Button label="Open in Maps" variant="outline" onPress={() => Linking.openURL(googleDirectionsUrl(game.precise_lat!, game.precise_lng!))} />
             </>

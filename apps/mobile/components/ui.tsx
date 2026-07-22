@@ -80,14 +80,28 @@ export function Button({ label, onPress, variant = "primary", disabled }: { labe
 /** The reference's primary CTA: full-width lime gradient pill. */
 export function GradientButton({ label, onPress, disabled }: { label: string; onPress?: () => void; disabled?: boolean }) {
   return (
-    <Pressable onPress={onPress} disabled={disabled} style={{ opacity: disabled ? 0.45 : 1 }}>
+    <Pressable
+      onPress={onPress}
+      disabled={disabled}
+      style={{
+        opacity: disabled ? 0.45 : 1,
+        borderRadius: radius.pill,
+        // Lime bloom under the pill so the CTA reads as lit, not painted.
+        shadowColor: colors.accent,
+        shadowOpacity: disabled ? 0 : 0.65,
+        shadowRadius: 18,
+        shadowOffset: { width: 0, height: 6 },
+        elevation: 10,
+      }}
+    >
       <LinearGradient
-        colors={[colors.accent, colors.accentDeep]}
+        colors={[colors.accentBright, colors.accent, colors.accentDeep]}
+        locations={[0, 0.42, 1]}
         start={{ x: 0, y: 0 }}
         end={{ x: 1, y: 1 }}
         style={{ borderRadius: radius.pill, paddingVertical: space(4), alignItems: "center" }}
       >
-        <Text style={{ color: colors.onAccent, fontFamily: font.bodySemibold, fontSize: 15 }}>{label}</Text>
+        <Text style={{ color: colors.onAccent, fontFamily: font.bodySemibold, fontSize: 15, letterSpacing: 0.3 }}>{label}</Text>
       </LinearGradient>
     </Pressable>
   );

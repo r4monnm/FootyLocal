@@ -42,7 +42,14 @@ No DB migration. No RPC change. This is a client-rendering change only.
 
 ## A. Discover map
 
-- `MapView` in the upper pane, `userInterfaceStyle="dark"` (iOS) to match theme.
+- `MapView` in the upper pane, recolored to the app's neon green by the
+  `MapSkin` component (`components/map-skin.tsx`): a `mixBlendMode: "color"`
+  neon layer that replaces the basemap's hue while preserving luminance, over
+  a `multiply` shade that sinks the land toward black so roads and labels read
+  as neon lines. Both layers are `pointerEvents="none"`. Verified rendering in
+  the simulator — blending does compose over the native map view.
+  `mapType="standard"` (not `mutedStandard`: the muted basemap has too little
+  contrast left to survive the shade pass).
 - Initial region from `expo-location`; re-fit to returned games when the set
   changes.
 - One `Marker` per game at its public (fuzzed) coordinate.

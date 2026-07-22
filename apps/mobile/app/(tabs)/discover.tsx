@@ -6,7 +6,8 @@ import MapView, { Marker, type Region } from "react-native-maps";
 import { toGamesNearFilters, roundPublicDistance, GAME_BANDS, type DiscoverFilters, type GameBand } from "@footylocal/core";
 import { supabase } from "../../lib/supabase";
 import { Title, Badge, Muted } from "../../components/ui";
-import { colors, radius, space, font, absoluteFill } from "../../theme";
+import { MapSkin } from "../../components/map-skin";
+import { colors, radius, space, font } from "../../theme";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 /** One games_near row, as Discover uses it.
@@ -94,7 +95,7 @@ export default function Discover() {
             // app's palette as we can get inside Expo Go. A fully brand-colored
             // basemap needs PROVIDER_GOOGLE + customMapStyle, which on iOS
             // requires a development build.
-            mapType="mutedStandard"
+            mapType="standard"
             userInterfaceStyle="dark"
             showsUserLocation
             showsMyLocationButton={false}
@@ -106,7 +107,9 @@ export default function Discover() {
               <Marker
                 key={g.id}
                 coordinate={{ latitude: g.public_lat, longitude: g.public_lng }}
-                pinColor={g.id === selectedId ? "#CCFF00" : "#8CC63F"}
+                // The MapSkin `color` blend keeps only luminance, so pins must
+                // be bright to survive it. Selected goes to white = brightest.
+                pinColor={g.id === selectedId ? "#FFFFFF" : "#CCFF00"}
                 title={g.title}
                 description={`${roundPublicDistance(g.distance_meters)} · approximate area`}
                 onPress={() => select(g, "pin")}
@@ -117,7 +120,7 @@ export default function Discover() {
         {/* Green wash that pulls the basemap toward the app palette. Must not
             eat touches destined for the map. */}
         {region ? (
-          <View pointerEvents="none" style={{ ...absoluteFill, backgroundColor: colors.mapWash }} />
+          <MapSkin />
         ) : (
           <View style={{ flex: 1, alignItems: "center", justifyContent: "center", backgroundColor: colors.gray }}>
             <Muted>Locating…</Muted>
