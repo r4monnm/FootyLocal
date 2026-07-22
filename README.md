@@ -29,3 +29,14 @@ In Google Cloud Console → Credentials → your key:
 - `packages/config` — shared tsconfig/eslint.
 - `apps/web` — Next.js web app.
 - `apps/mobile` — Expo placeholder (later phase).
+
+## Payments (Stripe Connect, test mode — optional)
+Paid games are seam-gated: without Stripe keys the app runs normally and paid
+features are hidden. To enable:
+1. Create a Stripe account; enable **Connect** (test mode).
+2. Developers → API keys: copy the **test** secret + publishable keys into
+   `STRIPE_SECRET_KEY` / `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`.
+3. Local webhooks: install the Stripe CLI and run
+   `stripe listen --forward-to localhost:3000/api/stripe/webhook`; copy the
+   printed `whsec_...` into `STRIPE_WEBHOOK_SECRET`.
+4. Restart `pnpm dev`. Test card: `4242 4242 4242 4242`, any future expiry/CVC.
