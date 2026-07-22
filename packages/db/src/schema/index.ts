@@ -51,6 +51,7 @@ export const profiles = pgTable("profiles", {
   is18Plus: boolean("is_18_plus").default(false).notNull(),
   stripeAccountId: text("stripe_account_id"),
   stripeChargesEnabled: boolean("stripe_charges_enabled").default(false).notNull(),
+  stripeIdentitySessionId: text("stripe_identity_session_id"),
   ...timestamps,
 });
 
