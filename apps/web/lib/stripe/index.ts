@@ -104,3 +104,24 @@ export async function refundPaymentIntent(id: string): Promise<void> {
     refund_application_fee: true,
   });
 }
+
+/** Stripe Identity uses the same secret key as payments, so the same gate applies. */
+export function identityEnabled(): boolean {
+  return paymentsEnabled();
+}
+
+/** Creates a hosted Stripe Identity session (government document + matching selfie).
+ * Returns the redirect URL and the session id (persisted so the UI can show "pending"). */
+export async function createIdentityVerificationSession(opts: {
+  userId: string;
+  returnUrl: string;
+}): Promise<{ url: string; sessionId: string }> {
+  const session = await getStripe().identity.verificationSessions.create({
+    type: "document",
+    options: { document: { require_matching_selfie: true } },
+    metadata: { user_id: opts.userId },
+    return_url: opts.returnUrl,
+  });
+  if (!session.url) throw new Error("verification session has no url");
+  return { url: session.url, sessionId: session.id };
+}
