@@ -27,11 +27,11 @@ export default function MyGames() {
   );
   return (
     <Screen>
-      <Title>My Games</Title>
-      <Muted>Upcoming</Muted>
-      {upcoming.length ? upcoming.map(Card) : <Muted>Nothing upcoming.</Muted>}
-      <Muted>Past</Muted>
-      {past.length ? past.map(Card) : <Muted>No past games yet.</Muted>}
+      <Title>Fixtures</Title>
+      <Muted>Upcoming fixtures</Muted>
+      {upcoming.length ? upcoming.map(Card) : <Muted>No fixtures yet. Find a game in Discover.</Muted>}
+      <Muted>Past matches</Muted>
+      {past.length ? past.map(Card) : <Muted>No matches played yet.</Muted>}
     </Screen>
   );
 }

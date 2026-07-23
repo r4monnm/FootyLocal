@@ -84,7 +84,7 @@ export default function GameDetail() {
       </View>
       {error && <ErrorText>{error}</ErrorText>}
       <Muted>{game.venue_name}</Muted>
-      <Muted>{new Date(game.starts_at).toLocaleString()}</Muted>
+      <Muted>Kick off · {new Date(game.starts_at).toLocaleString()}</Muted>
       <View style={{ flexDirection: "row", alignItems: "center", gap: space(2), flexWrap: "wrap" }}>
         <Muted>Host: {game.host_name ?? "—"} · {hostBand.toUpperCase()}</Muted>
         {hostBadges.map((b) => <Badge key={b} tone="accent">{VERIF_LABEL[b]}</Badge>)}
@@ -126,7 +126,7 @@ export default function GameDetail() {
             </>
           )}
           <View style={{ gap: space(1) }}>
-            <Muted>Roster</Muted>
+            <Muted>Squad</Muted>
             {(game.roster ?? []).map((r) => (
               <Text key={r.player_id} style={{ color: colors.ink, fontFamily: font.body }}>{r.name ?? "Player"}{r.role === "host" ? " · host" : ""}</Text>
             ))}

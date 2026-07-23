@@ -4,6 +4,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 import { LinearGradient } from "expo-linear-gradient";
 import { Ionicons } from "@expo/vector-icons";
 import { colors, radius, space, font } from "../theme";
+import { PitchLines } from "./pitch-lines";
 
 export function Screen({ children }: { children: ReactNode }) {
   return (
@@ -17,6 +18,7 @@ export function Screen({ children }: { children: ReactNode }) {
 export function AuthScreen({ children }: { children: ReactNode }) {
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
+      <PitchLines />
       <LinearGradient
         colors={[colors.glow, "rgba(140,198,63,0.12)", "rgba(11,15,10,0)"]}
         locations={[0, 0.45, 1]}
@@ -170,11 +172,13 @@ export function Field(props: TextInputProps & { label: string }) {
   );
 }
 
+/** Scoreboard cell: big lit numeral over a small engraved label. */
 export function StatTile({ label, value }: { label: string; value: string | number }) {
   return (
-    <View style={{ backgroundColor: colors.gray, borderRadius: radius.card, borderWidth: 1, borderColor: colors.border, padding: space(4), alignItems: "center", flex: 1 }}>
-      <Text style={{ fontFamily: font.display, fontSize: 28, color: colors.accent }}>{value}</Text>
-      <Text style={{ fontSize: 11, textTransform: "uppercase", color: colors.muted }}>{label}</Text>
+    <View style={{ backgroundColor: "#0A0D08", borderRadius: radius.card, borderWidth: 1, borderColor: colors.border, paddingVertical: space(4), paddingHorizontal: space(2), alignItems: "center", flex: 1 }}>
+      <Text style={{ fontFamily: font.display, fontSize: 30, color: colors.accent, letterSpacing: 1 }}>{value}</Text>
+      <View style={{ height: 1, alignSelf: "stretch", backgroundColor: colors.border, marginVertical: space(1.5) }} />
+      <Text style={{ fontSize: 10, textTransform: "uppercase", color: colors.muted, fontFamily: font.bodySemibold, letterSpacing: 0.6 }}>{label}</Text>
     </View>
   );
 }
